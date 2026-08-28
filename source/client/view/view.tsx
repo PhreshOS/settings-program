@@ -1,12 +1,11 @@
 import { SystemProvider, useSystemAppearance, useSystemTheme } from "@phreshos/react"
 import { AppearanceProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
-import { lazy, Suspense, useMemo } from "react"
+import { useMemo } from "react"
 import { Redirect, Route, Router, Switch } from "wouter"
+import Appearance from "./appearance/appearance"
 import Settings from "./settings"
 import "./style.css"
-
-const Appearance = lazy(() => import("./appearance/appearance"))
 
 export default function View() {
     return <SystemProvider provide={["appearance", "theme"]} fallback={<ResourceState message="Opening Settings…" />}>
@@ -22,13 +21,11 @@ function ResolvedView() {
     return <AppearanceProvider appearance={appearance} theme={theme}>
         <Router base={programAssetsBase()}>
             <Settings>
-                <Suspense fallback={<ResourceState message="Opening Appearance…" />}>
-                    <Switch>
-                        <Route path="/appearance">{() => <Appearance application={application} />}</Route>
-                        <Route path="/"><Redirect to="/appearance" replace /></Route>
-                        <Route><Redirect to="/appearance" replace /></Route>
-                    </Switch>
-                </Suspense>
+                <Switch>
+                    <Route path="/appearance">{() => <Appearance application={application} />}</Route>
+                    <Route path="/"><Redirect to="/appearance" replace /></Route>
+                    <Route><Redirect to="/appearance" replace /></Route>
+                </Switch>
             </Settings>
         </Router>
     </AppearanceProvider>
