@@ -1,4 +1,4 @@
-import { SystemProvider, useSystemAppearance, useSystemTheme } from "@phreshos/react"
+import { SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
 import { AppearanceProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
@@ -8,21 +8,21 @@ import Settings from "./settings"
 import "./style.css"
 
 export default function View() {
-    return <SystemProvider provide={["appearance", "theme"]} fallback={<ResourceState message="Opening Settings…" />}>
+    return <SystemProvider provide={["appearance", "desktopPreferences"]} fallback={<ResourceState message="Opening Settings…" />}>
         <ResolvedView />
     </SystemProvider>
 }
 
 function ResolvedView() {
     const appearance = useSystemAppearance()
-    const theme = useSystemTheme()
+    const preferences = useDesktopPreferences()
     const application = useMemo(() => new Application(), [])
 
-    return <AppearanceProvider appearance={appearance} theme={theme}>
+    return <AppearanceProvider appearance={appearance} theme={preferences.theme}>
         <Router base={programAssetsBase()}>
             <Settings>
                 <Switch>
-                    <Route path="/appearance">{() => <Appearance application={application} />}</Route>
+                    <Route path="/appearance">{() => <Appearance application={application} preferences={preferences} />}</Route>
                     <Route path="/"><Redirect to="/appearance" replace /></Route>
                     <Route><Redirect to="/appearance" replace /></Route>
                 </Switch>

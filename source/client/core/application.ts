@@ -1,5 +1,5 @@
 import { current, system } from "@phreshos/client"
-import type { Appearance, ThemePreference } from "@phreshos/core"
+import type { Appearance, DesktopPreferencesUpdate } from "@phreshos/core"
 
 /** Owns Settings operations and coordinates them with their System authority. */
 export default class Application {
@@ -7,8 +7,8 @@ export default class Application {
         return current.server.ask<void>("appearance.update", appearance)
     }
 
-    public updateTheme(theme: ThemePreference) {
-        return system.theme.update(theme)
+    public updateDesktopPreferences(preferences: DesktopPreferencesUpdate) {
+        return system.desktopPreferences.update(preferences)
     }
 
     public async upload(file: File) {

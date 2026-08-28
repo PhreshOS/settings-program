@@ -1,15 +1,27 @@
-import { appearanceLimits, standardAppearance, type Appearance, type AppearanceSurface, type ThemePreference } from "@phreshos/core"
+import {
+    appearanceLimits,
+    standardAppearance,
+    type AnimationsPreference,
+    type Appearance,
+    type AppearanceSurface,
+    type DesktopPreferences,
+    type DesktopPreferencesUpdate,
+    type ThemePreference
+} from "@phreshos/core"
 import { Button, useAppearance, useResolveTheme, useTheme } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useEffect, useState, type CSSProperties } from "react"
 
-export default function AppearanceSettings({ application }: Readonly<{ application: Application }>) {
+export default function AppearanceSettings({ application, preferences }: Readonly<{
+    application: Application
+    preferences: DesktopPreferences
+}>) {
     const authoritative = useAppearance()
     const theme = useTheme()
     const [draft, setDraft] = useState(() => copy(authoritative))
     const saving = usePromise((appearance: Appearance) => application.updateAppearance(appearance))
-    const themeChange = usePromise((preference: ThemePreference) => application.updateTheme(preference))
+    const preferenceChange = usePromise((update: DesktopPreferencesUpdate) => application.updateDesktopPreferences(update))
     const dirty = JSON.stringify(draft) !== JSON.stringify(authoritative)
 
     useEffect(() => setDraft(copy(authoritative)), [authoritative])
@@ -44,11 +56,22 @@ export default function AppearanceSettings({ application }: Readonly<{ applicati
             <div className="theme-options">
                 {(["default", "light", "dark"] as const).map(preference => <Button
                     key={preference}
-                    pending={themeChange.isPending}
-                    onPress={() => void themeChange.safeExecute(preference)}
+                    pending={preferenceChange.isPending}
+                    onPress={() => void preferenceChange.safeExecute({ theme: preference })}
                 >{themeLabel(preference)}</Button>)}
             </div>
-            {themeChange.exception && <ErrorMessage value={themeChange.exception.current} />}
+            <GroupHeading
+                title="Animations"
+                description={`Desktop animations are currently ${preferences.animations ? "enabled" : "disabled"}.`}
+            />
+            <div className="theme-options">
+                {(["default", true, false] as const).map(preference => <Button
+                    key={String(preference)}
+                    pending={preferenceChange.isPending}
+                    onPress={() => void preferenceChange.safeExecute({ animations: preference })}
+                >{animationsLabel(preference)}</Button>)}
+            </div>
+            {preferenceChange.exception && <ErrorMessage value={preferenceChange.exception.current} />}
         </div>
 
         <div className="settings-group">
@@ -277,6 +300,10 @@ function pickerColor(value: string) {
 
 function themeLabel(theme: ThemePreference) {
     return theme === "default" ? "Follow system" : theme === "light" ? "Light" : "Dark"
+}
+
+function animationsLabel(animations: AnimationsPreference) {
+    return animations === "default" ? "Follow system" : animations ? "Enabled" : "Disabled"
 }
 
 const surfaceLabels: Readonly<Record<keyof AppearanceSurface, string>> = {
