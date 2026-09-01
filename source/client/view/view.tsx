@@ -1,4 +1,5 @@
 import { SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
+import { system } from "@phreshos/client"
 import { AppearanceProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
@@ -8,7 +9,11 @@ import Settings from "./settings"
 import "./style.css"
 
 export default function View() {
-    return <SystemProvider provide={["appearance", "desktopPreferences"]} fallback={<ResourceState message="Opening Settings…" />}>
+    return <SystemProvider
+        appearance={system.appearance}
+        desktopPreferences={system.desktop.preferences}
+        fallback={<ResourceState message="Opening Settings…" />}
+    >
         <ResolvedView />
     </SystemProvider>
 }

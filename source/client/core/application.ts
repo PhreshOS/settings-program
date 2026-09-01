@@ -8,7 +8,7 @@ export default class Application {
     }
 
     public updateDesktopPreferences(preferences: DesktopPreferencesUpdate) {
-        return system.desktopPreferences.update(preferences)
+        return system.desktop.preferences.update(preferences)
     }
 
     public async upload(file: File) {
