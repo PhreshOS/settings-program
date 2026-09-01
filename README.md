@@ -2,16 +2,51 @@
 
 The official PhreshOS Settings Program.
 
-Settings follows MVC independently on both endpoints. Client Core exposes
-Settings operations as local capabilities. Server Core coordinates Appearance
-updates with the authoritative System. The View renders those capabilities and
-never owns a competing copy of System state.
+Settings provides a desktop interface for owner-controlled System preferences.
 
-The first Settings domain is Appearance. Its route is loaded lazily at
-`/appearance`; the root route redirects there until more Settings domains are
-introduced.
+## Model
+
+The Server coordinates authoritative System changes. Client Core exposes
+Settings operations as local capabilities, and Client View renders those
+capabilities without retaining a competing copy of System state.
+
+Appearance is the current Settings domain. It controls the System Appearance
+and the effective desktop theme and animation preferences through their public
+contracts.
+
+## Installation
 
 ```sh
-bun install
-phresh dev
+phresh install settings --run
 ```
+
+## Development
+
+```sh
+bun install --frozen-lockfile
+bun run verify
+bun run dev
+```
+
+Build, attach the production definition, or package a release with:
+
+```sh
+bun run build
+bun run start
+bun run pack
+```
+
+`verify` checks the source, builds both Endpoints, and validates the production
+Program artifact.
+
+## Repository boundary
+
+This repository owns the Settings domain and its interface. The System remains
+the authority for Appearance and desktop preferences.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository workflow and
+[SECURITY.md](SECURITY.md) for private vulnerability reporting.
+
+## License
+
+Licensed under the [MIT License](LICENSE). Copyright © 2026 Zohayr SLILEH.
