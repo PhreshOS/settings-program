@@ -23,7 +23,6 @@ export default defineConfig({
         size: { width: "3/4", height: "3/4" },
         position: { x: "1/8", y: "1/8" },
         development: {
-            url: "http://localhost:5270/",
             startCommand: "vite --config vite.client.ts"
         }
     }
