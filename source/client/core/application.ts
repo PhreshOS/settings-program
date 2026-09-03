@@ -1,4 +1,4 @@
-import { context, system } from "@phreshos/client"
+import { context, desktop, system } from "@phreshos/client"
 import type { Appearance, DesktopPreferencesUpdate } from "@phreshos/core"
 
 /** Owns Settings operations and coordinates them with their System authority. */
@@ -8,7 +8,7 @@ export default class Application {
     }
 
     public updateDesktopPreferences(preferences: DesktopPreferencesUpdate) {
-        return system.desktop.preferences.update(preferences)
+        return desktop.preferences.update(preferences)
     }
 
     public async upload(file: File) {
