@@ -8,9 +8,9 @@ The owner-facing PhreshOS Settings Program.
 
 ## Role
 
-Settings presents owner-controlled System preferences. Its Server coordinates
-authoritative changes, and its Client renders those capabilities without
-retaining a competing copy of System state.
+Settings presents owner-controlled System preferences. Its Client uses the
+System and Desktop contracts directly through explicitly declared permissions,
+without retaining a competing copy of System state.
 
 Appearance is the current Settings domain. The System owns Appearance and
 Desktop preferences; this Program owns their owner-facing interaction and
@@ -42,8 +42,8 @@ bun run start
 bun run pack
 ```
 
-`verify` checks the source, builds both Endpoints, and validates the production
-Program artifact.
+`verify` checks the source, builds the Client Endpoint, and validates the
+production Program artifact.
 
 ## Related repositories
 

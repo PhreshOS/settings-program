@@ -34,7 +34,6 @@
         "@phreshos/core": "^0.1.37",
         "@phreshos/react": "^0.1.19",
         "@phreshos/react-ui": "^0.1.15",
-        "@phreshos/server": "^0.1.37",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
         "wouter": "^3.10.0"

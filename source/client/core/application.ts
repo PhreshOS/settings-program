@@ -1,10 +1,10 @@
-import { context, desktop, system } from "@phreshos/client"
+import { desktop, system } from "@phreshos/client"
 import type { Appearance, DesktopPreferencesUpdate } from "@phreshos/core"
 
 /** Owns Settings operations and coordinates them with their System authority. */
 export default class Application {
     public updateAppearance(appearance: Appearance) {
-        return context.server.ask<void>("appearance.update", appearance)
+        return system.appearance.update(appearance)
     }
 
     public updateDesktopPreferences(preferences: DesktopPreferencesUpdate) {
