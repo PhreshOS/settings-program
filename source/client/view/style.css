@@ -60,7 +60,7 @@ input { font: inherit; }
 
 .settings-navigation a:hover,
 .settings-navigation a.active {
-    background: color-mix(in oklch, var(--settings-accent) 16%, transparent);
+    background: color-mix(in oklch, var(--settings-primary) 16%, transparent);
 }
 
 .settings-content {
@@ -95,7 +95,7 @@ input { font: inherit; }
 }
 
 .appearance-heading span {
-    color: color-mix(in oklch, var(--settings-accent) 74%, var(--settings-foreground));
+    color: color-mix(in oklch, var(--settings-primary) 74%, var(--settings-foreground));
     font-size: 0.65rem;
     font-weight: 750;
     letter-spacing: 0.08em;
@@ -200,7 +200,7 @@ input { font: inherit; }
 }
 
 .color-text:focus {
-    border-color: color-mix(in oklch, var(--settings-accent) 70%, transparent);
+    border-color: color-mix(in oklch, var(--settings-primary) 70%, transparent);
 }
 
 .color-picker {
@@ -232,7 +232,7 @@ input { font: inherit; }
 
 .range-field input {
     width: 100%;
-    accent-color: var(--settings-accent);
+    accent-color: var(--settings-primary);
 }
 
 .range-field output {

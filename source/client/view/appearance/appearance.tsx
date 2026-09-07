@@ -79,7 +79,12 @@ export default function AppearanceSettings({ application, preferences }: Readonl
             <div className="field-grid">
                 <ThemedText label="Background" value={draft.background} change={value => replace("background", value)} />
                 <ThemedText label="Foreground" value={draft.foreground} change={value => replace("foreground", value)} />
-                <ThemedText label="Accent" value={draft.accent} change={value => replace("accent", value)} />
+                <ThemedText label="Primary" value={draft.primary} change={value => replace("primary", value)} />
+                <ThemedText label="Secondary" value={draft.secondary} change={value => replace("secondary", value)} />
+                <ThemedText label="Success" value={draft.success} change={value => replace("success", value)} />
+                <ThemedText label="Warning" value={draft.warning} change={value => replace("warning", value)} />
+                <ThemedText label="Danger" value={draft.danger} change={value => replace("danger", value)} />
+                <ThemedText label="Info" value={draft.info} change={value => replace("info", value)} />
             </div>
         </div>
 
@@ -262,12 +267,12 @@ function ErrorMessage({ value }: Readonly<{ value: unknown }>) {
 function useResolvedColors(appearance: Appearance): CSSProperties {
     const background = useResolveTheme(appearance.background)
     const foreground = useResolveTheme(appearance.foreground)
-    const accent = useResolveTheme(appearance.accent)
+    const primary = useResolveTheme(appearance.primary)
 
     return {
         "--settings-background": background,
         "--settings-foreground": foreground,
-        "--settings-accent": accent
+        "--settings-primary": primary
     } as CSSProperties
 }
 
@@ -275,7 +280,12 @@ function copy(appearance: Appearance): Appearance {
     return {
         background: { ...appearance.background },
         foreground: { ...appearance.foreground },
-        accent: { ...appearance.accent },
+        primary: { ...appearance.primary },
+        secondary: { ...appearance.secondary },
+        success: { ...appearance.success },
+        warning: { ...appearance.warning },
+        danger: { ...appearance.danger },
+        info: { ...appearance.info },
         spacing: { ...appearance.spacing },
         radius: { ...appearance.radius },
         surface: {
