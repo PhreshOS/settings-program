@@ -4,6 +4,7 @@ import {
     type AnimationsPreference,
     type Appearance,
     type AppearanceSurface,
+    type AppearanceShadow,
     type DesktopPreferences,
     type DesktopPreferencesUpdate,
     type ThemePreference
@@ -137,6 +138,22 @@ export default function AppearanceSettings({ application, preferences }: Readonl
                     application={application}
                     change={value => replace("desktopWallpaper", value)}
                 />
+            </div>
+        </div>
+
+        <div className="settings-group">
+            <GroupHeading title="Shadow" description="Independent outer shadow geometry and opacity." />
+            <div className="field-grid">
+                {(["light", "dark"] as const).map(theme => <div key={theme}>
+                    <strong>{themeLabel(theme)}</strong>
+                    {(Object.keys(appearanceLimits.shadow) as (keyof AppearanceShadow)[]).map(key => <RangeField
+                        key={key}
+                        label={shadowLabels[key]}
+                        value={draft.shadow[theme][key]}
+                        range={appearanceLimits.shadow[key]}
+                        change={value => replace("shadow", { ...draft.shadow, [theme]: { ...draft.shadow[theme], [key]: value } })}
+                    />)}
+                </div>)}
             </div>
         </div>
 
@@ -288,6 +305,10 @@ function copy(appearance: Appearance): Appearance {
         info: { ...appearance.info },
         spacing: { ...appearance.spacing },
         radius: { ...appearance.radius },
+        shadow: {
+            light: { ...appearance.shadow.light },
+            dark: { ...appearance.shadow.dark }
+        },
         surface: {
             light: { ...appearance.surface.light },
             dark: { ...appearance.surface.dark }
@@ -326,4 +347,12 @@ const surfaceLabels: Readonly<Record<keyof AppearanceSurface, string>> = {
     ripples: "Ripples",
     saturation: "Saturation",
     brightness: "Brightness"
+}
+
+const shadowLabels: Readonly<Record<keyof AppearanceShadow, string>> = {
+    x: "Horizontal offset",
+    y: "Vertical offset",
+    blur: "Blur",
+    spread: "Spread",
+    opacity: "Opacity"
 }
