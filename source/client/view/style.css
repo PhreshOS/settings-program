@@ -30,6 +30,8 @@ input { font: inherit; }
     min-height: 0;
     display: grid;
     grid-template-columns: minmax(9rem, 0.24fr) minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
     color: var(--settings-foreground);
 }
 
@@ -40,8 +42,6 @@ input { font: inherit; }
     align-content: start;
     gap: 0.5rem;
     padding: 1rem;
-    border-inline-end: 1px solid color-mix(in oklch, var(--settings-foreground) 12%, transparent);
-    background: color-mix(in oklch, var(--settings-background) 72%, transparent);
 }
 
 .settings-navigation > strong {
