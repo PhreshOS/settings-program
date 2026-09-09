@@ -16,6 +16,11 @@ Appearance is the current Settings domain. The System owns Appearance and
 Desktop preferences; this Program owns their owner-facing interaction and
 presentation.
 
+Appearance can be exported as JSON text from the current draft and imported by
+pasting a complete JSON document. Import validates the values and loads a draft;
+the owner reviews it and uses Save to apply it. Wallpaper references are included,
+but uploaded image files are not embedded and remain tied to their System.
+
 ## Installation
 
 ```sh
@@ -42,7 +47,7 @@ bun run start
 bun run pack
 ```
 
-`verify` checks the source, builds the Client Endpoint, and validates the
+`verify` checks the source and Appearance document contracts, builds the Client Endpoint, and validates the
 production Program artifact.
 
 ## Related repositories

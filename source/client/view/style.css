@@ -265,6 +265,24 @@ input { font: inherit; }
     opacity: 0;
 }
 
+.appearance-document {
+    width: 100%;
+    min-height: 18rem;
+    padding: 0.75rem;
+    resize: vertical;
+    border: 1px solid color-mix(in oklch, var(--settings-foreground) 20%, transparent);
+    border-radius: 0.5rem;
+    color: var(--settings-foreground);
+    background: color-mix(in oklch, var(--settings-background) 80%, transparent);
+    font: 0.8rem/1.6 ui-monospace, monospace;
+    tab-size: 2;
+}
+
+.appearance-document:focus-visible {
+    outline: 2px solid var(--settings-primary);
+    outline-offset: 2px;
+}
+
 .operation-error {
     grid-column: 1 / -1;
     color: color-mix(in oklch, #c32121 76%, var(--settings-foreground));

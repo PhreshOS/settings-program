@@ -13,6 +13,7 @@ import { Button, useAppearance, useResolveTheme, useTheme } from "@phreshos/reac
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useEffect, useState, type CSSProperties } from "react"
+import { parseAppearance, serializeAppearance } from "./document"
 
 export default function AppearanceSettings({ application, preferences }: Readonly<{
     application: Application
@@ -21,6 +22,9 @@ export default function AppearanceSettings({ application, preferences }: Readonl
     const authoritative = useAppearance()
     const theme = useTheme()
     const [draft, setDraft] = useState(() => copy(authoritative))
+    const [transfer, setTransfer] = useState<"import" | "export" | null>(null)
+    const [document, setDocument] = useState("")
+    const [importError, setImportError] = useState<unknown>(null)
     const saving = usePromise((appearance: Appearance) => application.updateAppearance(appearance))
     const preferenceChange = usePromise((update: DesktopPreferencesUpdate) => application.updateDesktopPreferences(update))
     const dirty = JSON.stringify(draft) !== JSON.stringify(authoritative)
@@ -35,6 +39,16 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         await saving.safeExecute(draft)
     }
 
+    function importDraft() {
+        try {
+            setDraft(copy(parseAppearance(document)))
+            setImportError(null)
+            setTransfer(null)
+        } catch (error) {
+            setImportError(error)
+        }
+    }
+
     return <div className="appearance" style={useResolvedColors(authoritative)}>
         <div className="appearance-heading">
             <div>
@@ -43,6 +57,8 @@ export default function AppearanceSettings({ application, preferences }: Readonl
                 <p>Changes are stored by the System and published to every connected desktop.</p>
             </div>
             <div className="appearance-actions">
+                <Button disabled={saving.isPending} onPress={() => { setTransfer("import"); setImportError(null) }}>Import</Button>
+                <Button onPress={() => setTransfer("export")}>Export</Button>
                 <Button disabled={!dirty || saving.isPending} onPress={() => setDraft(copy(authoritative))}>Discard</Button>
                 <Button disabled={!dirty} pending={saving.isPending} onPress={() => void save()}>
                     {saving.isPending ? "Saving…" : "Save"}
@@ -51,6 +67,31 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         </div>
 
         {saving.exception && <ErrorMessage value={saving.exception.current} />}
+
+        {transfer && <section className="settings-group" aria-label={`${transfer === "import" ? "Import" : "Export"} Appearance`}>
+            <GroupHeading
+                title={transfer === "import" ? "Import Appearance" : "Export Appearance"}
+                description={transfer === "import"
+                    ? "Paste a complete Appearance JSON document. Load it into the draft, review it, then Save to apply."
+                    : "Copy the current draft as JSON. Wallpaper references are included, not the image files; they belong to this System."}
+            />
+            <textarea
+                className="appearance-document"
+                aria-label="Appearance JSON"
+                spellCheck={false}
+                autoCapitalize="off"
+                autoFocus
+                readOnly={transfer === "export"}
+                value={transfer === "export" ? serializeAppearance(draft) : document}
+                onChange={event => { setDocument(event.currentTarget.value); setImportError(null) }}
+                onFocus={event => { if (transfer === "export") event.currentTarget.select() }}
+            />
+            {transfer === "import" && importError !== null && <ErrorMessage value={importError} />}
+            <div className="appearance-actions">
+                {transfer === "import" && <Button color="primary" disabled={saving.isPending || !document.trim()} onPress={importDraft}>Load draft</Button>}
+                <Button onPress={() => setTransfer(null)}>Close</Button>
+            </div>
+        </section>}
 
         <div className="settings-group">
             <GroupHeading title="Theme" description={`The desktop is currently ${theme}.`} />
