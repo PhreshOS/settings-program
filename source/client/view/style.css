@@ -31,7 +31,7 @@ input { font: inherit; }
     display: grid;
     grid-template-columns: minmax(9rem, 0.24fr) minmax(0, 1fr);
     gap: 8px;
-    padding: 8px;
+    padding: 0 8px 8px;
     color: var(--settings-foreground);
 }
 
