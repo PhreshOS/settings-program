@@ -384,10 +384,7 @@ const surfaceLabels: Readonly<Record<keyof AppearanceSurface, string>> = {
     backdrop: "Backdrop blur",
     opacity: "Opacity",
     distortion: "Distortion",
-    waves: "Waves",
-    ripples: "Ripples",
-    saturation: "Saturation",
-    brightness: "Brightness"
+    saturation: "Saturation"
 }
 
 const shadowLabels: Readonly<Record<keyof AppearanceShadow, string>> = {
