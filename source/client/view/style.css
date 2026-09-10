@@ -145,7 +145,7 @@ input { font: inherit; }
 }
 
 .field-grid,
-.surface-themes,
+.material-themes,
 .wallpaper-grid {
     min-width: 0;
     display: grid;
@@ -154,13 +154,13 @@ input { font: inherit; }
 }
 
 .field-grid.compact,
-.surface-themes,
+.material-themes,
 .wallpaper-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .themed-field,
-.surface-fields,
+.material-fields,
 .wallpaper-fields {
     min-width: 0;
     display: grid;
@@ -169,7 +169,7 @@ input { font: inherit; }
 }
 
 .themed-field > strong,
-.surface-fields > strong,
+.material-fields > strong,
 .wallpaper-fields > strong {
     font-size: 0.72rem;
 }
@@ -312,6 +312,6 @@ input { font: inherit; }
     .settings { grid-template-columns: minmax(7rem, 0.3fr) minmax(0, 1fr); }
     .settings-group { grid-template-columns: minmax(0, 1fr); }
     .field-grid { grid-template-columns: minmax(0, 1fr); }
-    .surface-themes,
+    .material-themes,
     .wallpaper-grid { grid-template-columns: minmax(0, 1fr); }
 }

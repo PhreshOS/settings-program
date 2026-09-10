@@ -1,9 +1,9 @@
 import {
     appearanceLimits,
-    standardAppearance,
+    defaultAppearance,
     type AnimationsPreference,
     type Appearance,
-    type AppearanceSurface,
+    type AppearanceMaterial,
     type AppearanceShadow,
     type DesktopPreferences,
     type DesktopPreferencesUpdate,
@@ -149,17 +149,17 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         </div>
 
         <div className="settings-group">
-            <GroupHeading title="Surface" description="Material values resolve independently for light and dark themes." />
-            <div className="surface-themes">
-                <SurfaceFields
+            <GroupHeading title="Material" description="Visual substance resolves independently for light and dark themes." />
+            <div className="material-themes">
+                <MaterialFields
                     label="Light"
-                    value={draft.surface.light}
-                    change={value => replace("surface", { ...draft.surface, light: value })}
+                    value={draft.material.light}
+                    change={value => replace("material", { ...draft.material, light: value })}
                 />
-                <SurfaceFields
+                <MaterialFields
                     label="Dark"
-                    value={draft.surface.dark}
-                    change={value => replace("surface", { ...draft.surface, dark: value })}
+                    value={draft.material.dark}
+                    change={value => replace("material", { ...draft.material, dark: value })}
                 />
             </div>
         </div>
@@ -203,7 +203,7 @@ export default function AppearanceSettings({ application, preferences }: Readonl
                 <strong>Standard appearance</strong>
                 <span>Restore every value to the shared PhreshOS defaults.</span>
             </div>
-            <Button onPress={() => setDraft(copy(standardAppearance))}>Reset</Button>
+            <Button onPress={() => setDraft(copy(defaultAppearance))}>Reset</Button>
         </div>
     </div>
 }
@@ -263,18 +263,18 @@ function RangeField({ label, value, range, change }: Readonly<{
     </label>
 }
 
-function SurfaceFields({ label, value, change }: Readonly<{
+function MaterialFields({ label, value, change }: Readonly<{
     label: string
-    value: AppearanceSurface
-    change: (value: AppearanceSurface) => void
+    value: AppearanceMaterial
+    change: (value: AppearanceMaterial) => void
 }>) {
-    return <div className="surface-fields">
+    return <div className="material-fields">
         <strong>{label}</strong>
-        {(Object.keys(appearanceLimits.surface) as (keyof AppearanceSurface)[]).map(key => <RangeField
+        {(Object.keys(appearanceLimits.material) as (keyof AppearanceMaterial)[]).map(key => <RangeField
             key={key}
-            label={surfaceLabels[key]}
+            label={materialLabels[key]}
             value={value[key]}
-            range={appearanceLimits.surface[key]}
+            range={appearanceLimits.material[key]}
             change={next => change({ ...value, [key]: next })}
         />)}
     </div>
@@ -350,9 +350,9 @@ function copy(appearance: Appearance): Appearance {
             light: { ...appearance.shadow.light },
             dark: { ...appearance.shadow.dark }
         },
-        surface: {
-            light: { ...appearance.surface.light },
-            dark: { ...appearance.surface.dark }
+        material: {
+            light: { ...appearance.material.light },
+            dark: { ...appearance.material.dark }
         },
         signInWallpaper: { ...appearance.signInWallpaper },
         desktopWallpaper: { ...appearance.desktopWallpaper }
@@ -378,7 +378,7 @@ function animationsLabel(animations: AnimationsPreference) {
     return animations === "default" ? "Follow system" : animations ? "Enabled" : "Disabled"
 }
 
-const surfaceLabels: Readonly<Record<keyof AppearanceSurface, string>> = {
+const materialLabels: Readonly<Record<keyof AppearanceMaterial, string>> = {
     grain: "Grain intensity",
     grainAmount: "Grain amount",
     backdrop: "Backdrop blur",

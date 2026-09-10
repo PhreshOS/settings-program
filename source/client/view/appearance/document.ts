@@ -1,4 +1,4 @@
-import { appearanceLimits, createAppearanceSnapshot, standardAppearance, type Appearance } from "@phreshos/core"
+import { appearanceLimits, createAppearanceSnapshot, defaultAppearance, type Appearance } from "@phreshos/core"
 
 /** Reads a complete Appearance document before it can become an editable draft. */
 export function parseAppearance(text: string): Appearance {
@@ -15,7 +15,7 @@ export function serializeAppearance(appearance: Appearance): string {
 }
 
 function assertAppearance(value: unknown): asserts value is Appearance {
-    validate(value, standardAppearance, appearanceLimits, "Appearance")
+    validate(value, defaultAppearance, appearanceLimits, "Appearance")
 }
 
 // The current Core defaults supply the complete shape; its limits supply ranges.
