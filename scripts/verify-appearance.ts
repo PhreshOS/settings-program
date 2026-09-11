@@ -22,7 +22,10 @@ for (const value of ["12", -1, 97]) {
     })), /Appearance.shadow.light.blur/)
 }
 assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, spacing: { light: 100 } })), /Appearance.spacing.light/)
-assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, foreground: { light: "", dark: "red" } })), /Appearance.foreground.light/)
+assert.throws(() => parseAppearance(JSON.stringify({
+    ...defaultAppearance,
+    colors: { ...defaultAppearance.colors, foreground: { light: "", dark: "red" } }
+})), /Appearance.colors.foreground.light/)
 assert.throws(() => parseAppearance(JSON.stringify({
     ...defaultAppearance,
     material: { ...defaultAppearance.material, dark: { ...defaultAppearance.material.dark, opacity: 2 } }

@@ -35,6 +35,10 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         setDraft(current => ({ ...current, [key]: value }))
     }
 
+    function replaceColor<Key extends keyof Appearance["colors"]>(key: Key, value: Appearance["colors"][Key]) {
+        setDraft(current => ({ ...current, colors: { ...current.colors, [key]: value } }))
+    }
+
     async function save() {
         await saving.safeExecute(draft)
     }
@@ -88,7 +92,7 @@ export default function AppearanceSettings({ application, preferences }: Readonl
             />
             {transfer === "import" && importError !== null && <ErrorMessage value={importError} />}
             <div className="appearance-actions">
-                {transfer === "import" && <Button color="primary" disabled={saving.isPending || !document.trim()} onPress={importDraft}>Load draft</Button>}
+                {transfer === "import" && <Button color="primary:base" disabled={saving.isPending || !document.trim()} onPress={importDraft}>Load draft</Button>}
                 <Button onPress={() => setTransfer(null)}>Close</Button>
             </div>
         </section>}
@@ -119,14 +123,14 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         <div className="settings-group">
             <GroupHeading title="Colors" description="Independent colors for both effective themes." />
             <div className="field-grid">
-                <ThemedText label="Background" value={draft.background} change={value => replace("background", value)} />
-                <ThemedText label="Foreground" value={draft.foreground} change={value => replace("foreground", value)} />
-                <ThemedText label="Primary" value={draft.primary} change={value => replace("primary", value)} />
-                <ThemedText label="Secondary" value={draft.secondary} change={value => replace("secondary", value)} />
-                <ThemedText label="Success" value={draft.success} change={value => replace("success", value)} />
-                <ThemedText label="Warning" value={draft.warning} change={value => replace("warning", value)} />
-                <ThemedText label="Danger" value={draft.danger} change={value => replace("danger", value)} />
-                <ThemedText label="Info" value={draft.info} change={value => replace("info", value)} />
+                <ThemedText label="Background" value={draft.colors.background} change={value => replaceColor("background", value)} />
+                <ThemedText label="Foreground" value={draft.colors.foreground} change={value => replaceColor("foreground", value)} />
+                <ThemedText label="Primary" value={draft.colors.primary} change={value => replaceColor("primary", value)} />
+                <ThemedText label="Secondary" value={draft.colors.secondary} change={value => replaceColor("secondary", value)} />
+                <ThemedText label="Success" value={draft.colors.success} change={value => replaceColor("success", value)} />
+                <ThemedText label="Warning" value={draft.colors.warning} change={value => replaceColor("warning", value)} />
+                <ThemedText label="Danger" value={draft.colors.danger} change={value => replaceColor("danger", value)} />
+                <ThemedText label="Info" value={draft.colors.info} change={value => replaceColor("info", value)} />
             </div>
         </div>
 
@@ -323,9 +327,9 @@ function ErrorMessage({ value }: Readonly<{ value: unknown }>) {
 }
 
 function useResolvedColors(appearance: Appearance): CSSProperties {
-    const background = useResolveTheme(appearance.background)
-    const foreground = useResolveTheme(appearance.foreground)
-    const primary = useResolveTheme(appearance.primary)
+    const background = useResolveTheme(appearance.colors.background)
+    const foreground = useResolveTheme(appearance.colors.foreground)
+    const primary = useResolveTheme(appearance.colors.primary)
 
     return {
         "--settings-background": background,
@@ -336,14 +340,16 @@ function useResolvedColors(appearance: Appearance): CSSProperties {
 
 function copy(appearance: Appearance): Appearance {
     return {
-        background: { ...appearance.background },
-        foreground: { ...appearance.foreground },
-        primary: { ...appearance.primary },
-        secondary: { ...appearance.secondary },
-        success: { ...appearance.success },
-        warning: { ...appearance.warning },
-        danger: { ...appearance.danger },
-        info: { ...appearance.info },
+        colors: {
+            background: { ...appearance.colors.background },
+            foreground: { ...appearance.colors.foreground },
+            primary: { ...appearance.colors.primary },
+            secondary: { ...appearance.colors.secondary },
+            success: { ...appearance.colors.success },
+            warning: { ...appearance.colors.warning },
+            danger: { ...appearance.colors.danger },
+            info: { ...appearance.colors.info }
+        },
         spacing: { ...appearance.spacing },
         radius: { ...appearance.radius },
         shadow: {
