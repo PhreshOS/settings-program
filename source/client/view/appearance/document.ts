@@ -21,6 +21,10 @@ function assertAppearance(value: unknown): asserts value is Appearance {
 // The current Core defaults supply the complete shape; its limits supply ranges.
 // System validation remains authoritative when the owner saves the draft.
 function validate(value: unknown, template: unknown, limits: unknown, path: string): void {
+    if (path === "Appearance.transaction.easing") {
+        validateEasing(value, path)
+        return
+    }
     if (template === null) {
         if (value === null || typeof value === "string" && value.length > 0) return
         throw new Error(`${path} must be a wallpaper reference or null.`)
@@ -46,6 +50,18 @@ function validate(value: unknown, template: unknown, limits: unknown, path: stri
         const range = key === "light" || key === "dark" ? limits : record(limits) ? limits[key] : undefined
         validate(value[key], template[key], range, `${path}.${key}`)
     }
+}
+
+function validateEasing(value: unknown, path: string) {
+    if (value === "linear" || value === "ease" || value === "ease-in" || value === "ease-out" || value === "ease-in-out") return
+    if (Array.isArray(value)
+        && value.length === 4
+        && value.every(item => typeof item === "number" && Number.isFinite(item))
+        && value[0] >= 0
+        && value[0] <= 1
+        && value[2] >= 0
+        && value[2] <= 1) return
+    throw new Error(path + " must be a standard easing name or four cubic Bézier numbers.")
 }
 
 function record(value: unknown): value is Record<string, unknown> {

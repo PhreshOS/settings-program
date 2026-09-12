@@ -3,13 +3,17 @@ import {
     defaultAppearance,
     type AnimationsPreference,
     type Appearance,
+    type AppearanceColor,
+    type AppearanceColors,
     type AppearanceMaterial,
     type AppearanceShadow,
     type DesktopPreferences,
     type DesktopPreferencesUpdate,
+    type Easing,
+    type Theme,
     type ThemePreference
 } from "@phreshos/core"
-import { Button, useAppearance, useResolveTheme, useTheme } from "@phreshos/react-ui"
+import { Button, useAppearance, useThemedValue, useTheme } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useEffect, useState, type CSSProperties } from "react"
@@ -35,8 +39,14 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         setDraft(current => ({ ...current, [key]: value }))
     }
 
-    function replaceColor<Key extends keyof Appearance["colors"]>(key: Key, value: Appearance["colors"][Key]) {
-        setDraft(current => ({ ...current, colors: { ...current.colors, [key]: value } }))
+    function replaceColor(theme: Theme, key: AppearanceColor, value: string) {
+        setDraft(current => ({
+            ...current,
+            colors: {
+                ...current.colors,
+                [theme]: { ...current.colors[theme], [key]: value }
+            }
+        }))
     }
 
     async function save() {
@@ -123,14 +133,12 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         <div className="settings-group">
             <GroupHeading title="Colors" description="Independent colors for both effective themes." />
             <div className="field-grid">
-                <ThemedText label="Background" value={draft.colors.background} change={value => replaceColor("background", value)} />
-                <ThemedText label="Foreground" value={draft.colors.foreground} change={value => replaceColor("foreground", value)} />
-                <ThemedText label="Primary" value={draft.colors.primary} change={value => replaceColor("primary", value)} />
-                <ThemedText label="Secondary" value={draft.colors.secondary} change={value => replaceColor("secondary", value)} />
-                <ThemedText label="Success" value={draft.colors.success} change={value => replaceColor("success", value)} />
-                <ThemedText label="Warning" value={draft.colors.warning} change={value => replaceColor("warning", value)} />
-                <ThemedText label="Danger" value={draft.colors.danger} change={value => replaceColor("danger", value)} />
-                <ThemedText label="Info" value={draft.colors.info} change={value => replaceColor("info", value)} />
+                {(["light", "dark"] as const).map(theme => <ColorFields
+                    key={theme}
+                    label={themeLabel(theme)}
+                    value={draft.colors[theme]}
+                    change={(key, value) => replaceColor(theme, key, value)}
+                />)}
             </div>
         </div>
 
@@ -139,15 +147,32 @@ export default function AppearanceSettings({ application, preferences }: Readonl
             <div className="field-grid compact">
                 <RangeField
                     label="Spacing"
-                    value={draft.spacing.light}
+                    value={draft.spacing}
                     range={appearanceLimits.spacing}
-                    change={value => replace("spacing", { light: value })}
+                    change={value => replace("spacing", value)}
                 />
                 <RangeField
                     label="Radius"
-                    value={draft.radius.light}
+                    value={draft.radius}
                     range={appearanceLimits.radius}
-                    change={value => replace("radius", { light: value })}
+                    change={value => replace("radius", value)}
+                />
+            </div>
+        </div>
+
+        <div className="settings-group">
+            <GroupHeading title="Transaction" description="Shared timing for visual changes." />
+            <div className="field-grid compact">
+                <NumberField
+                    label="Duration (ms)"
+                    value={draft.transaction.duration}
+                    minimum={appearanceLimits.transaction.duration.minimum}
+                    maximum={appearanceLimits.transaction.duration.maximum}
+                    change={duration => replace("transaction", { ...draft.transaction, duration })}
+                />
+                <EasingField
+                    value={draft.transaction.easing}
+                    change={easing => replace("transaction", { ...draft.transaction, easing })}
                 />
             </div>
         </div>
@@ -219,15 +244,19 @@ function GroupHeading({ title, description }: Readonly<{ title: string, descript
     </div>
 }
 
-function ThemedText({ label, value, change }: Readonly<{
+function ColorFields({ label, value, change }: Readonly<{
     label: string
-    value: Readonly<{ light: string, dark: string }>
-    change: (value: Readonly<{ light: string, dark: string }>) => void
+    value: AppearanceColors
+    change: (key: AppearanceColor, value: string) => void
 }>) {
     return <div className="themed-field">
         <strong>{label}</strong>
-        <TextField label="Light" value={value.light} change={light => change({ ...value, light })} />
-        <TextField label="Dark" value={value.dark} change={dark => change({ ...value, dark })} />
+        {(Object.keys(value) as AppearanceColor[]).map(key => <TextField
+            key={key}
+            label={colorLabel(key)}
+            value={value[key]}
+            change={next => change(key, next)}
+        />)}
     </div>
 }
 
@@ -265,6 +294,59 @@ function RangeField({ label, value, range, change }: Readonly<{
         />
         <output>{format(value)}</output>
     </label>
+}
+
+function NumberField({ label, value, minimum, maximum, change }: Readonly<{
+    label: string
+    value: number
+    minimum: number
+    maximum: number
+    change: (value: number) => void
+}>) {
+    return <label className="range-field">
+        <span>{label}</span>
+        <input
+            type="number"
+            min={minimum}
+            max={maximum}
+            value={value}
+            onChange={event => {
+                const next = event.currentTarget.valueAsNumber
+                if (Number.isFinite(next)) change(next)
+            }}
+        />
+    </label>
+}
+
+function EasingField({ value, change }: Readonly<{ value: Easing, change: (value: Easing) => void }>) {
+    const custom = Array.isArray(value)
+
+    return <div className="themed-field">
+        <label className="text-field">
+            <span>Easing</span>
+            <select
+                value={custom ? "custom" : value as string}
+                onChange={event => change(event.currentTarget.value === "custom"
+                    ? [0.25, 0.1, 0.25, 1]
+                    : event.currentTarget.value as Easing)}
+            >
+                {["linear", "ease", "ease-in", "ease-out", "ease-in-out"].map(easing => <option key={easing}>{easing}</option>)}
+                <option value="custom">Custom cubic Bézier</option>
+            </select>
+        </label>
+        {custom && value.map((coordinate, index) => <NumberField
+            key={index}
+            label={["X1", "Y1", "X2", "Y2"][index]}
+            value={coordinate}
+            minimum={index % 2 === 0 ? 0 : -10}
+            maximum={index % 2 === 0 ? 1 : 10}
+            change={next => {
+                const easing = [...value] as [number, number, number, number]
+                easing[index] = next
+                change(easing)
+            }}
+        />)}
+    </div>
 }
 
 function MaterialFields({ label, value, change }: Readonly<{
@@ -327,9 +409,7 @@ function ErrorMessage({ value }: Readonly<{ value: unknown }>) {
 }
 
 function useResolvedColors(appearance: Appearance): CSSProperties {
-    const background = useResolveTheme(appearance.colors.background)
-    const foreground = useResolveTheme(appearance.colors.foreground)
-    const primary = useResolveTheme(appearance.colors.primary)
+    const { background, foreground, primary } = useThemedValue(appearance.colors)
 
     return {
         "--settings-background": background,
@@ -341,17 +421,11 @@ function useResolvedColors(appearance: Appearance): CSSProperties {
 function copy(appearance: Appearance): Appearance {
     return {
         colors: {
-            background: { ...appearance.colors.background },
-            foreground: { ...appearance.colors.foreground },
-            primary: { ...appearance.colors.primary },
-            secondary: { ...appearance.colors.secondary },
-            success: { ...appearance.colors.success },
-            warning: { ...appearance.colors.warning },
-            danger: { ...appearance.colors.danger },
-            info: { ...appearance.colors.info }
+            light: { ...appearance.colors.light },
+            dark: { ...appearance.colors.dark }
         },
-        spacing: { ...appearance.spacing },
-        radius: { ...appearance.radius },
+        spacing: appearance.spacing,
+        radius: appearance.radius,
         shadow: {
             light: { ...appearance.shadow.light },
             dark: { ...appearance.shadow.dark }
@@ -360,6 +434,7 @@ function copy(appearance: Appearance): Appearance {
             light: { ...appearance.material.light },
             dark: { ...appearance.material.dark }
         },
+        transaction: { ...appearance.transaction },
         signInWallpaper: { ...appearance.signInWallpaper },
         desktopWallpaper: { ...appearance.desktopWallpaper }
     }
@@ -382,6 +457,10 @@ function themeLabel(theme: ThemePreference) {
 
 function animationsLabel(animations: AnimationsPreference) {
     return animations === "default" ? "Follow system" : animations ? "Enabled" : "Disabled"
+}
+
+function colorLabel(color: AppearanceColor) {
+    return color[0].toUpperCase() + color.slice(1)
 }
 
 const materialLabels: Readonly<Record<keyof AppearanceMaterial, string>> = {

@@ -21,15 +21,19 @@ for (const value of ["12", -1, 97]) {
         shadow: { ...defaultAppearance.shadow, light: { ...defaultAppearance.shadow.light, blur: value } }
     })), /Appearance.shadow.light.blur/)
 }
-assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, spacing: { light: 100 } })), /Appearance.spacing.light/)
+assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, spacing: 100 })), /Appearance.spacing/)
 assert.throws(() => parseAppearance(JSON.stringify({
     ...defaultAppearance,
-    colors: { ...defaultAppearance.colors, foreground: { light: "", dark: "red" } }
-})), /Appearance.colors.foreground.light/)
+    colors: { ...defaultAppearance.colors, light: { ...defaultAppearance.colors.light, foreground: "" } }
+})), /Appearance.colors.light.foreground/)
 assert.throws(() => parseAppearance(JSON.stringify({
     ...defaultAppearance,
     material: { ...defaultAppearance.material, dark: { ...defaultAppearance.material.dark, opacity: 2 } }
 })), /Appearance.material.dark.opacity/)
 assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"blur": 24', '"blur": 1e999')), /finite number/)
-assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"spacing": {', '"__proto__": {}, "spacing": {')), /not an Appearance field/)
+assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"colors": {', '"__proto__": {}, "colors": {')), /not an Appearance field/)
+assert.throws(() => parseAppearance(JSON.stringify({
+    ...defaultAppearance,
+    transaction: { duration: 120, easing: [2, 0, 0.5, 1] }
+})), /Appearance.transaction.easing/)
 console.log("Appearance document contracts passed")
