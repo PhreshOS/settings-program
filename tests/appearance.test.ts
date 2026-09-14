@@ -14,9 +14,10 @@ test("appearance contract", async () => {
   }
   assert.deepEqual(parseAppearance(serializeAppearance(custom)), custom)
   assert.throws(() => parseAppearance("{"), /valid Appearance JSON/)
-  for (const value of [null, [], {}, { ...defaultAppearance, extra: true }, { ...defaultAppearance, shadow: null }]) {
+  for (const value of [null, [], {}, { ...defaultAppearance, shadow: null }]) {
       assert.throws(() => parseAppearance(JSON.stringify(value)))
   }
+  assert.deepEqual(parseAppearance(JSON.stringify({ ...defaultAppearance, extension: true })), defaultAppearance)
   for (const value of ["12", -1, 97]) {
       assert.throws(() => parseAppearance(JSON.stringify({
           ...defaultAppearance,
@@ -33,7 +34,10 @@ test("appearance contract", async () => {
       material: { ...defaultAppearance.material, dark: { ...defaultAppearance.material.dark, opacity: 2 } }
   })), /Appearance.material.dark.opacity/)
   assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"blur": 24', '"blur": 1e999')), /finite number/)
-  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"colors": {', '"__proto__": {}, "colors": {')), /not an Appearance field/)
+  assert.deepEqual(
+      parseAppearance(serializeAppearance(defaultAppearance).replace('"colors": {', '"__proto__": {}, "colors": {')),
+      defaultAppearance
+  )
   assert.throws(() => parseAppearance(JSON.stringify({
       ...defaultAppearance,
       transaction: { duration: 120, easing: [2, 0, 0.5, 1] }

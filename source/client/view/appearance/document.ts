@@ -42,9 +42,6 @@ function validate(value: unknown, template: unknown, limits: unknown, path: stri
         return
     }
     if (!record(template) || !record(value)) throw new Error(`${path} must be an object.`)
-    for (const key of Object.keys(value)) {
-        if (!Object.hasOwn(template, key)) throw new Error(`${path}.${key} is not an Appearance field.`)
-    }
     for (const key of Object.keys(template)) {
         if (!Object.hasOwn(value, key)) throw new Error(`${path}.${key} is missing.`)
         const range = key === "light" || key === "dark" ? limits : record(limits) ? limits[key] : undefined
