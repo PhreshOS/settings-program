@@ -21,7 +21,7 @@ function ResolvedView() {
     const preferences = useDesktopPreferences()
     const application = useMemo(() => new Application(), [])
 
-    return <AppearanceProvider appearance={appearance} theme={preferences.theme}>
+    return <AppearanceProvider appearance={appearance} preferences={preferences}>
         <Router base={programAssetsBase()}>
             <Settings>
                 <Switch>

@@ -9,7 +9,7 @@ export function parseAppearance(text: string): Appearance {
     return createAppearanceSnapshot(value)
 }
 
-/** Exports values only; uploaded wallpaper references are not embedded images. */
+/** Exports values only; referenced wallpaper uploads are not embedded. */
 export function serializeAppearance(appearance: Appearance): string {
     return JSON.stringify(appearance, null, 2)
 }

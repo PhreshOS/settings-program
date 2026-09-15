@@ -13,7 +13,7 @@ import {
     type Theme,
     type ThemePreference
 } from "@phreshos/core"
-import { Button, useAppearance, useThemedValue, useTheme } from "@phreshos/react-ui"
+import { Button, useAppearance, usePreferences, useThemedValue } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useEffect, useState, type CSSProperties } from "react"
@@ -24,7 +24,7 @@ export default function AppearanceSettings({ application, preferences }: Readonl
     preferences: DesktopPreferences
 }>) {
     const authoritative = useAppearance()
-    const theme = useTheme()
+    const { theme } = usePreferences()
     const [draft, setDraft] = useState(() => copy(authoritative))
     const [transfer, setTransfer] = useState<"import" | "export" | null>(null)
     const [document, setDocument] = useState("")
@@ -194,7 +194,7 @@ export default function AppearanceSettings({ application, preferences }: Readonl
         </div>
 
         <div className="settings-group">
-            <GroupHeading title="Wallpapers" description="Choose separate images for each desktop theme." />
+            <GroupHeading title="Wallpapers" description="Choose separate images, videos, or offline HTML documents for each desktop theme." />
             <div className="wallpaper-grid">
                 <WallpaperFields
                     title="Sign in"
@@ -396,8 +396,8 @@ function WallpaperField({ label, value, application, change }: Readonly<{
     return <div className="wallpaper-field">
         <span>{label}</span>
         <label className="file-action">
-            {uploading.isPending ? "Uploading…" : value ? "Replace" : "Choose image"}
-            <input type="file" accept="image/*" disabled={uploading.isPending} onChange={event => void select(event.currentTarget.files?.[0])} />
+            {uploading.isPending ? "Uploading…" : value ? "Replace" : "Choose wallpaper"}
+            <input type="file" accept="image/*,video/mp4,video/ogg,video/webm,.html" disabled={uploading.isPending} onChange={event => void select(event.currentTarget.files?.[0])} />
         </label>
         {value && <Button size="small" onPress={() => change(null)}>Clear</Button>}
         {uploading.exception && <ErrorMessage value={uploading.exception.current} />}
