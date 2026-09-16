@@ -1,6 +1,6 @@
 import { DesktopProvider, SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
 import { desktop, system } from "@phreshos/client"
-import { AppearanceProvider } from "@phreshos/react-ui"
+import { UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
 import { Redirect, Route, Router, Switch } from "wouter"
@@ -21,7 +21,7 @@ function ResolvedView() {
     const preferences = useDesktopPreferences()
     const application = useMemo(() => new Application(), [])
 
-    return <AppearanceProvider appearance={appearance} preferences={preferences}>
+    return <UIProvider appearance={appearance} preferences={preferences}>
         <Router base={programAssetsBase()}>
             <Settings>
                 <Switch>
@@ -31,7 +31,7 @@ function ResolvedView() {
                 </Switch>
             </Settings>
         </Router>
-    </AppearanceProvider>
+    </UIProvider>
 }
 
 function ResourceState({ message }: Readonly<{ message: string }>) {
