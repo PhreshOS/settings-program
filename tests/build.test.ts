@@ -23,5 +23,6 @@ test("build contract", async () => {
 
   assert.match(page, /<html/i)
   assert.match(client, /Appearance/)
+  assert.match(client, /Desktop scale/)
   assert.match(client, /appearance\.update/)
 }, 120_000)

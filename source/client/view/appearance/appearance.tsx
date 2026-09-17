@@ -1,5 +1,6 @@
 import {
     appearanceLimits,
+    desktopPreferencesLimits,
     defaultAppearance,
     type AnimationsPreference,
     type Appearance,
@@ -13,17 +14,17 @@ import {
     type Theme,
     type ThemePreference
 } from "@phreshos/core"
-import { Button, useAppearance, usePreferences, useThemedValue } from "@phreshos/react-ui"
+import { Button, Slider, usePreferences, useThemedValue } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useEffect, useState, type CSSProperties } from "react"
 import { parseAppearance, serializeAppearance } from "./document"
 
-export default function AppearanceSettings({ application, preferences }: Readonly<{
+export default function AppearanceSettings({ appearance: authoritative, application, preferences }: Readonly<{
+    appearance: Appearance
     application: Application
     preferences: DesktopPreferences
 }>) {
-    const authoritative = useAppearance()
     const { theme } = usePreferences()
     const [draft, setDraft] = useState(() => copy(authoritative))
     const [transfer, setTransfer] = useState<"import" | "export" | null>(null)
@@ -126,6 +127,27 @@ export default function AppearanceSettings({ application, preferences }: Readonl
                     pending={preferenceChange.isPending}
                     onPress={() => void preferenceChange.safeExecute({ animations: preference })}
                 >{animationsLabel(preference)}</Button>)}
+            </div>
+            <GroupHeading
+                title="Scale"
+                description={`Desktop scale is currently ${Math.round(preferences.scale * 100)}%.`}
+            />
+            <Slider
+                key={preferences.scale}
+                aria-label="Desktop scale"
+                defaultValue={preferences.scale}
+                minValue={desktopPreferencesLimits.scale.minimum}
+                maxValue={desktopPreferencesLimits.scale.maximum}
+                step={0.05}
+                formatOptions={{ style: "percent" }}
+                disabled={preferenceChange.isPending}
+                onChangeEnd={scale => void preferenceChange.safeExecute({ scale })}
+            />
+            <div className="theme-options">
+                <Button
+                    pending={preferenceChange.isPending}
+                    onPress={() => void preferenceChange.safeExecute({ scale: "default" })}
+                >Default</Button>
             </div>
             {preferenceChange.exception && <ErrorMessage value={preferenceChange.exception.current} />}
         </div>

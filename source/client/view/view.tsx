@@ -25,7 +25,7 @@ function ResolvedView() {
         <Router base={programAssetsBase()}>
             <Settings>
                 <Switch>
-                    <Route path="/appearance">{() => <Appearance application={application} preferences={preferences} />}</Route>
+                    <Route path="/appearance">{() => <Appearance appearance={appearance} application={application} preferences={preferences} />}</Route>
                     <Route path="/"><Redirect to="/appearance" replace /></Route>
                     <Route><Redirect to="/appearance" replace /></Route>
                 </Switch>
