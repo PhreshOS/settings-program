@@ -10,7 +10,7 @@ test("build contract", async () => {
   assert.equal(config.version, manifest.version)
   assert.equal(config.server, undefined)
   assert.equal(config.client?.location, "dist/client")
-  assert.deepEqual(config.client?.permissions, {
+  assert.deepEqual(config.permissions, {
       appearance: true,
       desktopPreferences: true,
       uploads: true
