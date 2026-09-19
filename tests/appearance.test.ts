@@ -33,7 +33,7 @@ test("appearance contract", async () => {
       ...defaultAppearance,
       material: { ...defaultAppearance.material, dark: { ...defaultAppearance.material.dark, opacity: 2 } }
   })), /Appearance.material.dark.opacity/)
-  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"blur": 24', '"blur": 1e999')), /finite number/)
+  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"blur": 15', '"blur": 1e999')), /finite number/)
   assert.deepEqual(
       parseAppearance(serializeAppearance(defaultAppearance).replace('"colors": {', '"__proto__": {}, "colors": {')),
       defaultAppearance

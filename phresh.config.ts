@@ -4,7 +4,7 @@ export default defineConfig({
     identity: "settings",
     name: "Settings",
     description: "Configure PhreshOS.",
-    version: "0.1.25",
+    version: "0.1.26",
     icon: "icon.png",
     categories: ["System"],
     keywords: ["settings", "appearance", "theme"],
@@ -20,8 +20,6 @@ export default defineConfig({
         title: "Settings",
         size: { width: "3/4", height: "3/4" },
         position: { x: "1/8", y: "1/8" },
-        development: {
-            startCommand: "vite --config vite.client.ts"
-        }
+        devCommand: "vite --config vite.client.ts"
     }
 })
