@@ -10,6 +10,7 @@ test("appearance contract", async () => {
   const custom = {
       ...defaultAppearance,
       shadow: { ...defaultAppearance.shadow, light: { x: -4, y: 12, blur: 32, spread: -2, opacity: 0.3 } },
+      taskbar: { position: "left" as const, size: 62 },
       desktopWallpaper: { light: "12345678-1234-1234-1234-123456789abc.png", dark: null }
   }
   assert.deepEqual(parseAppearance(serializeAppearance(custom)), custom)
@@ -25,6 +26,8 @@ test("appearance contract", async () => {
       })), /Appearance.shadow.light.blur/)
   }
   assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, spacing: 100 })), /Appearance.spacing/)
+  assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, taskbar: { position: "center", size: 44 } })), /Appearance taskbar position/)
+  assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, taskbar: { position: "bottom", size: 101 } })), /Appearance.taskbar.size/)
   assert.throws(() => parseAppearance(JSON.stringify({
       ...defaultAppearance,
       colors: { ...defaultAppearance.colors, light: { ...defaultAppearance.colors.light, foreground: "" } }

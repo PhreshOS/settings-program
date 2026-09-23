@@ -11,10 +11,11 @@ import {
     type DesktopPreferences,
     type DesktopPreferencesUpdate,
     type Easing,
+    type TaskbarPosition,
     type Theme,
     type ThemePreference
 } from "@phreshos/core"
-import { Button, Slider, usePreferences, useThemedValue } from "@phreshos/react-ui"
+import { Button, Select, Slider, usePreferences, useThemedValue } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useEffect, useState, type CSSProperties } from "react"
@@ -183,6 +184,31 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
         </div>
 
         <div className="settings-group">
+            <GroupHeading title="Taskbar" description="Choose the screen edge and occupied distance." />
+            <div className="field-grid compact">
+                <Select
+                    label="Position"
+                    size="small"
+                    value={draft.taskbar.position}
+                    options={taskbarPositionOptions}
+                    onChange={value => {
+                        const position = taskbarPositionOptions.find(option => option.value === value)?.value
+                        if (position) replace("taskbar", { ...draft.taskbar, position })
+                    }}
+                />
+                <Slider
+                    label="Size (px)"
+                    size="small"
+                    value={draft.taskbar.size}
+                    minValue={appearanceLimits.taskbar.size.minimum}
+                    maxValue={appearanceLimits.taskbar.size.maximum}
+                    step={1}
+                    onChange={size => replace("taskbar", { ...draft.taskbar, size })}
+                />
+            </div>
+        </div>
+
+        <div className="settings-group">
             <GroupHeading title="Transaction" description="Shared timing for visual changes." />
             <div className="field-grid compact">
                 <NumberField
@@ -265,6 +291,13 @@ function GroupHeading({ title, description }: Readonly<{ title: string, descript
         <p>{description}</p>
     </div>
 }
+
+const taskbarPositionOptions = [
+    { value: "top", label: "Top" },
+    { value: "left", label: "Left" },
+    { value: "bottom", label: "Bottom" },
+    { value: "right", label: "Right" }
+] as const satisfies readonly Readonly<{ value: TaskbarPosition, label: string }>[]
 
 function ColorFields({ label, value, change }: Readonly<{
     label: string
@@ -457,6 +490,7 @@ function copy(appearance: Appearance): Appearance {
             dark: { ...appearance.material.dark }
         },
         transaction: { ...appearance.transaction },
+        taskbar: { ...appearance.taskbar },
         signInWallpaper: { ...appearance.signInWallpaper },
         desktopWallpaper: { ...appearance.desktopWallpaper }
     }

@@ -1,4 +1,4 @@
-import { appearanceLimits, createAppearanceSnapshot, defaultAppearance, type Appearance } from "@phreshos/core"
+import { appearanceLimits, defaultAppearance, parseAppearance as parseCoreAppearance, type Appearance } from "@phreshos/core"
 
 /** Reads a complete Appearance document before it can become an editable draft. */
 export function parseAppearance(text: string): Appearance {
@@ -6,7 +6,9 @@ export function parseAppearance(text: string): Appearance {
     try { value = JSON.parse(text) }
     catch { throw new Error("Enter a valid Appearance JSON document.") }
     assertAppearance(value)
-    return createAppearanceSnapshot(value)
+    // The local walk provides import-specific paths; Core remains the final
+    // owner of discriminants such as Taskbar position.
+    return parseCoreAppearance(value)
 }
 
 /** Exports values only; referenced wallpaper uploads are not embedded. */
