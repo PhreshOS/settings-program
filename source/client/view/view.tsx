@@ -1,6 +1,6 @@
 import { DesktopProvider, SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
 import { desktop, system } from "@phreshos/client"
-import { UIProvider } from "@phreshos/react-ui"
+import { ProgressBar, UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
 import { Redirect, Route, Router, Switch } from "wouter"
@@ -35,7 +35,7 @@ function ResolvedView() {
 }
 
 function ResourceState({ message }: Readonly<{ message: string }>) {
-    return <div className="resource-state" role="status">{message}</div>
+    return <div className="resource-state"><ProgressBar indeterminate label={message} /></div>
 }
 
 function programAssetsBase() {

@@ -43,6 +43,10 @@ function validate(value: unknown, template: unknown, limits: unknown, path: stri
         }
         return
     }
+    if (typeof template === "boolean") {
+        if (typeof value === "boolean") return
+        throw new Error(`${path} must be true or false.`)
+    }
     if (!record(template) || !record(value)) throw new Error(`${path} must be an object.`)
     for (const key of Object.keys(template)) {
         if (!Object.hasOwn(value, key)) throw new Error(`${path}.${key} is missing.`)

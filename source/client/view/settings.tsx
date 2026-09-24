@@ -1,17 +1,23 @@
 import type { ReactNode } from "react"
-import { Surface } from "@phreshos/react-ui"
-import { Link, useLocation } from "wouter"
+import { ScrollArea, Tabs } from "@phreshos/react-ui"
+import { useLocation } from "wouter"
 
 export default function Settings({ children }: Readonly<{ children: ReactNode }>) {
-    const [location] = useLocation()
+    const [, navigate] = useLocation()
 
-    return <div className="settings">
-        <Surface className="settings-navigation" role="navigation" aria-label="Settings">
-            <strong>Settings</strong>
-            <Link className={location === "/appearance" ? "active" : undefined} href="/appearance">
-                Appearance
-            </Link>
-        </Surface>
-        <div className="settings-content">{children}</div>
-    </div>
+    return <Tabs
+        className="settings"
+        orientation="vertical"
+        value="appearance"
+        onChange={value => navigate(`/${value}`)}
+    >
+        <Tabs.List className="settings-navigation" aria-label="Settings">
+            <Tabs.Tab id="appearance">Appearance</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panels className="settings-panels">
+            <Tabs.Panel id="appearance" className="settings-panel">
+                <ScrollArea className="settings-content">{children}</ScrollArea>
+            </Tabs.Panel>
+        </Tabs.Panels>
+    </Tabs>
 }

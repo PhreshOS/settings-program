@@ -15,10 +15,22 @@ import {
     type Theme,
     type ThemePreference
 } from "@phreshos/core"
-import { Button, Select, Slider, usePreferences, useThemedValue } from "@phreshos/react-ui"
+import {
+    Button,
+    Dialog,
+    Flex,
+    Grid,
+    Input,
+    Select,
+    Slider,
+    Switch,
+    Textarea,
+    usePreferences,
+    useThemedValue
+} from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import usePromise from "@libs/react-promise"
-import { useEffect, useState, type CSSProperties } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { parseAppearance, serializeAppearance } from "./document"
 
 export default function AppearanceSettings({ appearance: authoritative, application, preferences }: Readonly<{
@@ -27,6 +39,7 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
     preferences: DesktopPreferences
 }>) {
     const { theme } = usePreferences()
+    const foreground = useThemedValue(authoritative.colors).foreground
     const [draft, setDraft] = useState(() => copy(authoritative))
     const [transfer, setTransfer] = useState<"import" | "export" | null>(null)
     const [document, setDocument] = useState("")
@@ -55,6 +68,12 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
         await saving.safeExecute(draft)
     }
 
+    function openTransfer(kind: "import" | "export") {
+        setTransfer(kind)
+        setImportError(null)
+        if (kind === "import") setDocument("")
+    }
+
     function importDraft() {
         try {
             setDraft(copy(parseAppearance(document)))
@@ -65,127 +84,83 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
         }
     }
 
-    return <div className="appearance" style={useResolvedColors(authoritative)}>
-        <div className="appearance-heading">
+    return <main className="appearance" style={{ color: foreground }}>
+        <header className="appearance-heading">
             <div>
-                <span>Appearance</span>
+                <span className="appearance-kicker">Appearance</span>
                 <h1>Shape the desktop</h1>
                 <p>Changes are stored by the System and published to every connected desktop.</p>
             </div>
-            <div className="appearance-actions">
-                <Button disabled={saving.isPending} onPress={() => { setTransfer("import"); setImportError(null) }}>Import</Button>
-                <Button onPress={() => setTransfer("export")}>Export</Button>
+            <Flex className="appearance-actions" gap="small" wrap justify="end">
+                <Button disabled={saving.isPending} onPress={() => openTransfer("import")}>Import</Button>
+                <Button onPress={() => openTransfer("export")}>Export</Button>
                 <Button disabled={!dirty || saving.isPending} onPress={() => setDraft(copy(authoritative))}>Discard</Button>
-                <Button disabled={!dirty} pending={saving.isPending} onPress={() => void save()}>
+                <Button color="primary:base" disabled={!dirty} pending={saving.isPending} onPress={() => void save()}>
                     {saving.isPending ? "Saving…" : "Save"}
                 </Button>
-            </div>
-        </div>
+            </Flex>
+        </header>
 
         {saving.exception && <ErrorMessage value={saving.exception.current} />}
 
-        {transfer && <section className="settings-group" aria-label={`${transfer === "import" ? "Import" : "Export"} Appearance`}>
-            <GroupHeading
-                title={transfer === "import" ? "Import Appearance" : "Export Appearance"}
-                description={transfer === "import"
-                    ? "Paste a complete Appearance JSON document. Load it into the draft, review it, then Save to apply."
-                    : "Copy the current draft as JSON. Wallpaper references are included, not the image files; they belong to this System."}
-            />
-            <textarea
-                className="appearance-document"
-                aria-label="Appearance JSON"
-                spellCheck={false}
-                autoCapitalize="off"
-                autoFocus
-                readOnly={transfer === "export"}
-                value={transfer === "export" ? serializeAppearance(draft) : document}
-                onChange={event => { setDocument(event.currentTarget.value); setImportError(null) }}
-                onFocus={event => { if (transfer === "export") event.currentTarget.select() }}
-            />
-            {transfer === "import" && importError !== null && <ErrorMessage value={importError} />}
-            <div className="appearance-actions">
-                {transfer === "import" && <Button color="primary:base" disabled={saving.isPending || !document.trim()} onPress={importDraft}>Load draft</Button>}
-                <Button onPress={() => setTransfer(null)}>Close</Button>
-            </div>
-        </section>}
-
-        <div className="settings-group">
-            <GroupHeading title="Theme" description={`The desktop is currently ${theme}.`} />
-            <div className="theme-options">
+        <SettingsSection title="Theme" description={`The desktop is currently ${theme}.`}>
+            <Flex gap="small" wrap>
                 {(["default", "light", "dark"] as const).map(preference => <Button
                     key={preference}
                     pending={preferenceChange.isPending}
                     onPress={() => void preferenceChange.safeExecute({ theme: preference })}
                 >{themeLabel(preference)}</Button>)}
-            </div>
-            <GroupHeading
-                title="Animations"
-                description={`Desktop animations are currently ${preferences.animations ? "enabled" : "disabled"}.`}
-            />
-            <div className="theme-options">
+            </Flex>
+        </SettingsSection>
+
+        <SettingsSection title="Animations" description={`Desktop animations are currently ${preferences.animations ? "enabled" : "disabled"}.`}>
+            <Flex gap="small" wrap>
                 {(["default", true, false] as const).map(preference => <Button
                     key={String(preference)}
                     pending={preferenceChange.isPending}
                     onPress={() => void preferenceChange.safeExecute({ animations: preference })}
                 >{animationsLabel(preference)}</Button>)}
-            </div>
-            <GroupHeading
-                title="Scale"
-                description={`Desktop scale is currently ${Math.round(preferences.scale * 100)}%.`}
-            />
-            <Slider
-                key={preferences.scale}
-                aria-label="Desktop scale"
-                defaultValue={preferences.scale}
-                minValue={desktopPreferencesLimits.scale.minimum}
-                maxValue={desktopPreferencesLimits.scale.maximum}
-                step={0.05}
-                formatOptions={{ style: "percent" }}
-                disabled={preferenceChange.isPending}
-                onChangeEnd={scale => void preferenceChange.safeExecute({ scale })}
-            />
-            <div className="theme-options">
-                <Button
-                    pending={preferenceChange.isPending}
-                    onPress={() => void preferenceChange.safeExecute({ scale: "default" })}
-                >Default</Button>
-            </div>
-            {preferenceChange.exception && <ErrorMessage value={preferenceChange.exception.current} />}
-        </div>
+            </Flex>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Colors" description="Independent colors for both effective themes." />
-            <div className="field-grid">
+        <SettingsSection title="Scale" description={`Desktop scale is currently ${Math.round(preferences.scale * 100)}%.`}>
+            <Grid className="settings-fields compact" columns="minmax(0, 1fr) auto" align="end" gap="medium">
+                <Slider
+                    key={preferences.scale}
+                    label="Desktop scale"
+                    defaultValue={preferences.scale}
+                    minValue={desktopPreferencesLimits.scale.minimum}
+                    maxValue={desktopPreferencesLimits.scale.maximum}
+                    step={0.05}
+                    formatOptions={{ style: "percent" }}
+                    disabled={preferenceChange.isPending}
+                    onChangeEnd={scale => void preferenceChange.safeExecute({ scale })}
+                />
+                <Button pending={preferenceChange.isPending} onPress={() => void preferenceChange.safeExecute({ scale: "default" })}>Default</Button>
+            </Grid>
+            {preferenceChange.exception && <ErrorMessage value={preferenceChange.exception.current} />}
+        </SettingsSection>
+
+        <SettingsSection title="Colors" description="Independent colors for both effective themes.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
                 {(["light", "dark"] as const).map(theme => <ColorFields
                     key={theme}
                     label={themeLabel(theme)}
                     value={draft.colors[theme]}
                     change={(key, value) => replaceColor(theme, key, value)}
                 />)}
-            </div>
-        </div>
+            </Grid>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Layout" description="Shared spacing and corner dimensions." />
-            <div className="field-grid compact">
-                <RangeField
-                    label="Spacing"
-                    value={draft.spacing}
-                    range={appearanceLimits.spacing}
-                    change={value => replace("spacing", value)}
-                />
-                <RangeField
-                    label="Radius"
-                    value={draft.radius}
-                    range={appearanceLimits.radius}
-                    change={value => replace("radius", value)}
-                />
-            </div>
-        </div>
+        <SettingsSection title="Layout" description="Shared spacing and corner dimensions.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
+                <RangeField label="Spacing" value={draft.spacing} range={appearanceLimits.spacing} change={value => replace("spacing", value)} />
+                <RangeField label="Radius" value={draft.radius} range={appearanceLimits.radius} change={value => replace("radius", value)} />
+            </Grid>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Taskbar" description="Choose the screen edge and occupied distance." />
-            <div className="field-grid compact">
+        <SettingsSection title="Taskbar" description="Choose its edge, cross-axis size, and relationship to standard windows.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
                 <Select
                     label="Position"
                     size="small"
@@ -205,12 +180,17 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
                     step={1}
                     onChange={size => replace("taskbar", { ...draft.taskbar, size })}
                 />
-            </div>
-        </div>
+                <Switch
+                    label="Overlay standard windows"
+                    description="Use the complete window area and reveal the Taskbar from its screen edge."
+                    checked={draft.taskbar.overlay}
+                    onChange={overlay => replace("taskbar", { ...draft.taskbar, overlay })}
+                />
+            </Grid>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Transaction" description="Shared timing for visual changes." />
-            <div className="field-grid compact">
+        <SettingsSection title="Transaction" description="Shared timing for visual changes.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
                 <NumberField
                     label="Duration (ms)"
                     value={draft.transaction.duration}
@@ -218,52 +198,27 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
                     maximum={appearanceLimits.transaction.duration.maximum}
                     change={duration => replace("transaction", { ...draft.transaction, duration })}
                 />
-                <EasingField
-                    value={draft.transaction.easing}
-                    change={easing => replace("transaction", { ...draft.transaction, easing })}
-                />
-            </div>
-        </div>
+                <EasingField value={draft.transaction.easing} change={easing => replace("transaction", { ...draft.transaction, easing })} />
+            </Grid>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Material" description="Visual substance resolves independently for light and dark themes." />
-            <div className="material-themes">
-                <MaterialFields
-                    label="Light"
-                    value={draft.material.light}
-                    change={value => replace("material", { ...draft.material, light: value })}
-                />
-                <MaterialFields
-                    label="Dark"
-                    value={draft.material.dark}
-                    change={value => replace("material", { ...draft.material, dark: value })}
-                />
-            </div>
-        </div>
+        <SettingsSection title="Material" description="Visual substance resolves independently for light and dark themes.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
+                <MaterialFields label="Light" value={draft.material.light} change={value => replace("material", { ...draft.material, light: value })} />
+                <MaterialFields label="Dark" value={draft.material.dark} change={value => replace("material", { ...draft.material, dark: value })} />
+            </Grid>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Wallpapers" description="Choose separate images, videos, or offline HTML documents for each desktop theme." />
-            <div className="wallpaper-grid">
-                <WallpaperFields
-                    title="Sign in"
-                    value={draft.signInWallpaper}
-                    application={application}
-                    change={value => replace("signInWallpaper", value)}
-                />
-                <WallpaperFields
-                    title="Desktop"
-                    value={draft.desktopWallpaper}
-                    application={application}
-                    change={value => replace("desktopWallpaper", value)}
-                />
-            </div>
-        </div>
+        <SettingsSection title="Wallpapers" description="Choose separate images, videos, or offline HTML documents for each desktop theme.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
+                <WallpaperFields title="Sign in" value={draft.signInWallpaper} application={application} change={value => replace("signInWallpaper", value)} />
+                <WallpaperFields title="Desktop" value={draft.desktopWallpaper} application={application} change={value => replace("desktopWallpaper", value)} />
+            </Grid>
+        </SettingsSection>
 
-        <div className="settings-group">
-            <GroupHeading title="Shadow" description="Independent outer shadow geometry and opacity." />
-            <div className="field-grid">
-                {(["light", "dark"] as const).map(theme => <div key={theme}>
-                    <strong>{themeLabel(theme)}</strong>
+        <SettingsSection title="Shadow" description="Independent outer shadow geometry and opacity.">
+            <Grid className="settings-fields" columns={fieldColumns} gap="large">
+                {(["light", "dark"] as const).map(theme => <FieldGroup key={theme} title={themeLabel(theme)}>
                     {(Object.keys(appearanceLimits.shadow) as (keyof AppearanceShadow)[]).map(key => <RangeField
                         key={key}
                         label={shadowLabels[key]}
@@ -271,25 +226,88 @@ export default function AppearanceSettings({ appearance: authoritative, applicat
                         range={appearanceLimits.shadow[key]}
                         change={value => replace("shadow", { ...draft.shadow, [theme]: { ...draft.shadow[theme], [key]: value } })}
                     />)}
-                </div>)}
-            </div>
-        </div>
+                </FieldGroup>)}
+            </Grid>
+        </SettingsSection>
 
-        <div className="reset-appearance">
+        <section className="reset-appearance">
             <div>
                 <strong>Standard appearance</strong>
                 <span>Restore every value to the shared PhreshOS defaults.</span>
             </div>
             <Button onPress={() => setDraft(copy(defaultAppearance))}>Reset</Button>
-        </div>
-    </div>
+        </section>
+
+        <AppearanceTransfer
+            kind={transfer}
+            draft={draft}
+            document={document}
+            error={importError}
+            pending={saving.isPending}
+            onDocument={value => { setDocument(value); setImportError(null) }}
+            onImport={importDraft}
+            onClose={() => setTransfer(null)}
+        />
+    </main>
 }
 
-function GroupHeading({ title, description }: Readonly<{ title: string, description: string }>) {
-    return <div className="group-heading">
-        <h2>{title}</h2>
-        <p>{description}</p>
-    </div>
+function SettingsSection({ title, description, children }: Readonly<{ title: string, description: string, children: ReactNode }>) {
+    return <section className="settings-section">
+        <header className="section-heading">
+            <h2>{title}</h2>
+            <p>{description}</p>
+        </header>
+        <div className="section-content">{children}</div>
+    </section>
+}
+
+function AppearanceTransfer({ kind, draft, document, error, pending, onDocument, onImport, onClose }: Readonly<{
+    kind: "import" | "export" | null
+    draft: Appearance
+    document: string
+    error: unknown
+    pending: boolean
+    onDocument: (value: string) => void
+    onImport: () => void
+    onClose: () => void
+}>) {
+    const importing = kind === "import"
+    const title = importing ? "Import Appearance" : "Export Appearance"
+
+    return <Dialog isOpen={kind !== null} onOpenChange={open => { if (!open) onClose() }}>
+        <Dialog.Backdrop isDismissable>
+            <Dialog.Content>
+                <Dialog.Header>
+                    <Dialog.Title>{title}</Dialog.Title>
+                    <Dialog.Description>
+                        {importing
+                            ? "Load a complete Appearance document into the draft, review it, then save to apply it."
+                            : "Copy the current draft. Wallpaper references belong to this System and do not include their files."}
+                    </Dialog.Description>
+                </Dialog.Header>
+                <Dialog.Body>
+                    <Textarea
+                        label="Appearance JSON"
+                        aria-label="Appearance JSON"
+                        rows={14}
+                        autoFocus
+                        spellCheck="false"
+                        readOnly={!importing}
+                        value={importing ? document : serializeAppearance(draft)}
+                        invalid={importing && error !== null}
+                        errorMessage={importing && error !== null ? exceptionMessage(error) : undefined}
+                        onChange={onDocument}
+                        onFocus={event => { if (!importing) event.currentTarget.select() }}
+                        style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}
+                    />
+                </Dialog.Body>
+                <Dialog.Footer>
+                    {importing && <Button color="primary:base" disabled={pending || !document.trim()} onPress={onImport}>Load draft</Button>}
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Footer>
+            </Dialog.Content>
+        </Dialog.Backdrop>
+    </Dialog>
 }
 
 const taskbarPositionOptions = [
@@ -299,34 +317,28 @@ const taskbarPositionOptions = [
     { value: "right", label: "Right" }
 ] as const satisfies readonly Readonly<{ value: TaskbarPosition, label: string }>[]
 
+const fieldColumns = "repeat(auto-fit, minmax(min(16rem, 100%), 1fr))"
+
+const easingOptions = ["linear", "ease", "ease-in", "ease-out", "ease-in-out"].map(value => ({ value, label: value }))
+    .concat([{ value: "custom", label: "Custom cubic Bézier" }])
+
 function ColorFields({ label, value, change }: Readonly<{
     label: string
     value: AppearanceColors
     change: (key: AppearanceColor, value: string) => void
 }>) {
-    return <div className="themed-field">
-        <strong>{label}</strong>
-        {(Object.keys(value) as AppearanceColor[]).map(key => <TextField
-            key={key}
-            label={colorLabel(key)}
-            value={value[key]}
-            change={next => change(key, next)}
-        />)}
-    </div>
-}
-
-function TextField({ label, value, change }: Readonly<{ label: string, value: string, change: (value: string) => void }>) {
-    return <label className="text-field">
-        <span>{label}</span>
-        <input className="color-text" value={value} onChange={event => change(event.currentTarget.value)} />
-        <input
-            className="color-picker"
-            type="color"
-            value={pickerColor(value)}
-            aria-label={`Choose ${label.toLowerCase()} color`}
-            onChange={event => change(event.currentTarget.value)}
-        />
-    </label>
+    return <FieldGroup title={label}>
+        {(Object.keys(value) as AppearanceColor[]).map(key => <div className="color-field" key={key}>
+            <Input label={colorLabel(key)} size="small" value={value[key]} onChange={next => change(key, next)} />
+            <input
+                className="color-picker"
+                type="color"
+                value={pickerColor(value[key])}
+                aria-label={`Choose ${colorLabel(key).toLowerCase()} color`}
+                onChange={event => change(key, event.currentTarget.value)}
+            />
+        </div>)}
+    </FieldGroup>
 }
 
 function RangeField({ label, value, range, change }: Readonly<{
@@ -335,20 +347,15 @@ function RangeField({ label, value, range, change }: Readonly<{
     range: Readonly<{ minimum: number, maximum: number }>
     change: (value: number) => void
 }>) {
-    const step = range.maximum <= 3 ? 0.01 : 1
-
-    return <label className="range-field">
-        <span>{label}</span>
-        <input
-            type="range"
-            min={range.minimum}
-            max={range.maximum}
-            step={step}
-            value={value}
-            onChange={event => change(event.currentTarget.valueAsNumber)}
-        />
-        <output>{format(value)}</output>
-    </label>
+    return <Slider
+        label={label}
+        size="small"
+        value={value}
+        minValue={range.minimum}
+        maxValue={range.maximum}
+        step={range.maximum <= 3 ? 0.01 : 1}
+        onChange={change}
+    />
 }
 
 function NumberField({ label, value, minimum, maximum, change }: Readonly<{
@@ -358,50 +365,48 @@ function NumberField({ label, value, minimum, maximum, change }: Readonly<{
     maximum: number
     change: (value: number) => void
 }>) {
-    return <label className="range-field">
-        <span>{label}</span>
-        <input
-            type="number"
-            min={minimum}
-            max={maximum}
-            value={value}
-            onChange={event => {
-                const next = event.currentTarget.valueAsNumber
-                if (Number.isFinite(next)) change(next)
-            }}
-        />
-    </label>
+    return <Input
+        label={label}
+        size="small"
+        type="number"
+        value={String(value)}
+        onChange={text => {
+            if (text.trim() === "") return
+            const next = Number(text)
+            if (Number.isFinite(next) && next >= minimum && next <= maximum) change(next)
+        }}
+    />
 }
 
 function EasingField({ value, change }: Readonly<{ value: Easing, change: (value: Easing) => void }>) {
     const custom = Array.isArray(value)
 
-    return <div className="themed-field">
-        <label className="text-field">
-            <span>Easing</span>
-            <select
-                value={custom ? "custom" : value as string}
-                onChange={event => change(event.currentTarget.value === "custom"
-                    ? [0.25, 0.1, 0.25, 1]
-                    : event.currentTarget.value as Easing)}
-            >
-                {["linear", "ease", "ease-in", "ease-out", "ease-in-out"].map(easing => <option key={easing}>{easing}</option>)}
-                <option value="custom">Custom cubic Bézier</option>
-            </select>
-        </label>
-        {custom && value.map((coordinate, index) => <NumberField
-            key={index}
-            label={["X1", "Y1", "X2", "Y2"][index]}
-            value={coordinate}
-            minimum={index % 2 === 0 ? 0 : -10}
-            maximum={index % 2 === 0 ? 1 : 10}
-            change={next => {
-                const easing = [...value] as [number, number, number, number]
-                easing[index] = next
-                change(easing)
+    return <FieldGroup title="Easing">
+        <Select
+            label="Curve"
+            size="small"
+            value={custom ? "custom" : value as string}
+            options={easingOptions}
+            onChange={next => {
+                if (next === null) return
+                change(next === "custom" ? [0.25, 0.1, 0.25, 1] : next as Easing)
             }}
-        />)}
-    </div>
+        />
+        {custom && <Grid columns={2} gap="small">
+            {value.map((coordinate, index) => <NumberField
+                key={index}
+                label={["X1", "Y1", "X2", "Y2"][index]}
+                value={coordinate}
+                minimum={index % 2 === 0 ? 0 : -10}
+                maximum={index % 2 === 0 ? 1 : 10}
+                change={next => {
+                    const easing = [...value] as [number, number, number, number]
+                    easing[index] = next
+                    change(easing)
+                }}
+            />)}
+        </Grid>}
+    </FieldGroup>
 }
 
 function MaterialFields({ label, value, change }: Readonly<{
@@ -409,8 +414,7 @@ function MaterialFields({ label, value, change }: Readonly<{
     value: AppearanceMaterial
     change: (value: AppearanceMaterial) => void
 }>) {
-    return <div className="material-fields">
-        <strong>{label}</strong>
+    return <FieldGroup title={label}>
         {(Object.keys(appearanceLimits.material) as (keyof AppearanceMaterial)[]).map(key => <RangeField
             key={key}
             label={materialLabels[key]}
@@ -418,7 +422,7 @@ function MaterialFields({ label, value, change }: Readonly<{
             range={appearanceLimits.material[key]}
             change={next => change({ ...value, [key]: next })}
         />)}
-    </div>
+    </FieldGroup>
 }
 
 function WallpaperFields({ title, value, application, change }: Readonly<{
@@ -427,11 +431,10 @@ function WallpaperFields({ title, value, application, change }: Readonly<{
     application: Application
     change: (value: Readonly<{ light: string | null, dark: string | null }>) => void
 }>) {
-    return <div className="wallpaper-fields">
-        <strong>{title}</strong>
+    return <FieldGroup title={title}>
         <WallpaperField label="Light" value={value.light} application={application} change={light => change({ ...value, light })} />
         <WallpaperField label="Dark" value={value.dark} application={application} change={dark => change({ ...value, dark })} />
-    </div>
+    </FieldGroup>
 }
 
 function WallpaperField({ label, value, application, change }: Readonly<{
@@ -440,6 +443,7 @@ function WallpaperField({ label, value, application, change }: Readonly<{
     application: Application
     change: (value: string | null) => void
 }>) {
+    const input = useRef<HTMLInputElement>(null)
     const uploading = usePromise((file: File) => application.upload(file))
 
     async function select(file: File | undefined) {
@@ -450,27 +454,41 @@ function WallpaperField({ label, value, application, change }: Readonly<{
 
     return <div className="wallpaper-field">
         <span>{label}</span>
-        <label className="file-action">
-            {uploading.isPending ? "Uploading…" : value ? "Replace" : "Choose wallpaper"}
-            <input type="file" accept="image/*,video/mp4,video/ogg,video/webm,.html" disabled={uploading.isPending} onChange={event => void select(event.currentTarget.files?.[0])} />
-        </label>
-        {value && <Button size="small" onPress={() => change(null)}>Clear</Button>}
+        <Flex gap="small" wrap>
+            <Button size="small" pending={uploading.isPending} onPress={() => input.current?.click()}>
+                {uploading.isPending ? "Uploading…" : value ? "Replace" : "Choose wallpaper"}
+            </Button>
+            {value && <Button size="small" onPress={() => change(null)}>Clear</Button>}
+        </Flex>
+        <input
+            ref={input}
+            className="file-input"
+            type="file"
+            accept="image/*,video/mp4,video/ogg,video/webm,.html"
+            disabled={uploading.isPending}
+            onChange={event => {
+                const file = event.currentTarget.files?.[0]
+                event.currentTarget.value = ""
+                void select(file)
+            }}
+        />
         {uploading.exception && <ErrorMessage value={uploading.exception.current} />}
     </div>
 }
 
-function ErrorMessage({ value }: Readonly<{ value: unknown }>) {
-    return <p className="operation-error" role="alert">{value instanceof Error ? value.message : "The operation failed"}</p>
+function FieldGroup({ title, children }: Readonly<{ title: string, children: ReactNode }>) {
+    return <div className="field-group">
+        <strong>{title}</strong>
+        {children}
+    </div>
 }
 
-function useResolvedColors(appearance: Appearance): CSSProperties {
-    const { background, foreground, primary } = useThemedValue(appearance.colors)
+function ErrorMessage({ value }: Readonly<{ value: unknown }>) {
+    return <p className="operation-error" role="alert">{exceptionMessage(value)}</p>
+}
 
-    return {
-        "--settings-background": background,
-        "--settings-foreground": foreground,
-        "--settings-primary": primary
-    } as CSSProperties
+function exceptionMessage(value: unknown) {
+    return value instanceof Error ? value.message : "The operation failed"
 }
 
 function copy(appearance: Appearance): Appearance {
@@ -494,10 +512,6 @@ function copy(appearance: Appearance): Appearance {
         signInWallpaper: { ...appearance.signInWallpaper },
         desktopWallpaper: { ...appearance.desktopWallpaper }
     }
-}
-
-function format(value: number) {
-    return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")
 }
 
 function pickerColor(value: string) {
