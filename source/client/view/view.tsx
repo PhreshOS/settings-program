@@ -3,7 +3,6 @@ import { desktop, system } from "@phreshos/client"
 import { ProgressBar, UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
-import { Redirect, Route, Router, Switch } from "wouter"
 import Appearance from "./appearance/appearance"
 import Settings from "./settings"
 import "./style.css"
@@ -22,28 +21,12 @@ function ResolvedView() {
     const application = useMemo(() => new Application(), [])
 
     return <UIProvider appearance={appearance} preferences={preferences}>
-        <Router base={programAssetsBase()}>
-            <Settings>
-                <Switch>
-                    <Route path="/appearance">{() => <Appearance appearance={appearance} application={application} preferences={preferences} />}</Route>
-                    <Route path="/"><Redirect to="/appearance" replace /></Route>
-                    <Route><Redirect to="/appearance" replace /></Route>
-                </Switch>
-            </Settings>
-        </Router>
+        <Settings>
+            <Appearance appearance={appearance} application={application} preferences={preferences} />
+        </Settings>
     </UIProvider>
 }
 
 function ResourceState({ message }: Readonly<{ message: string }>) {
     return <div className="resource-state"><ProgressBar indeterminate label={message} /></div>
-}
-
-function programAssetsBase() {
-    const path = window.location.pathname
-    const marker = "/assets"
-
-    if (!path.startsWith("/program/")) return undefined
-
-    const end = path.indexOf(marker)
-    return end < 0 ? undefined : path.slice(0, end + marker.length)
 }
