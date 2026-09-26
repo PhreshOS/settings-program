@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { defaultAppearance } from "@phreshos/core"
-import { parseAppearance, serializeAppearance } from "../source/client/view/appearance/document"
+import { parseAppearance, serializeAppearance } from "../source/client/view/categories/appearance/document"
 import { test } from "vitest"
 
 test("appearance contract", async () => {
@@ -37,7 +37,7 @@ test("appearance contract", async () => {
       ...defaultAppearance,
       material: { ...defaultAppearance.material, dark: { ...defaultAppearance.material.dark, opacity: 2 } }
   })), /Appearance.material.dark.opacity/)
-  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace('"blur": 15', '"blur": 1e999')), /finite number/)
+  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace(`"blur": ${defaultAppearance.shadow.light.blur}`, '"blur": 1e999')), /finite number/)
   assert.deepEqual(
       parseAppearance(serializeAppearance(defaultAppearance).replace('"colors": {', '"__proto__": {}, "colors": {')),
       defaultAppearance

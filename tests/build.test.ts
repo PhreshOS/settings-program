@@ -23,7 +23,9 @@ test("build contract", async () => {
 
   assert.match(page, /<html/i)
   assert.match(client, /Appearance/)
-  assert.match(client, /Desktop scale/)
-  assert.match(client, /Overlay standard windows/)
+  // Both categories and their pages reach the bundle.
+  assert.match(client, /Theme, animations, and scale on this desktop only/)
+  assert.match(client, /Overlay windows/)
+  assert.match(client, /Wallpapers/)
   assert.match(client, /appearance\.update/)
 }, 120_000)
