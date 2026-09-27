@@ -39,6 +39,7 @@ export default function Settings() {
     // Each category's state wraps the whole frame, so its actions, pages, and
     // footer share it; categories not shown still keep theirs.
     const frame = <AppLayout>
+        <AppLayout.Title>Settings</AppLayout.Title>
         <AppLayout.Sidebar aria-label="Settings">
             <nav aria-label="Settings">
                 <Tree aria-label="Settings" selectionMode="single" value={pageKey(category, page)} onChange={choose} expanded={expanded} onExpandedChange={setExpanded}>
