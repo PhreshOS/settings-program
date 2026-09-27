@@ -64,7 +64,7 @@ the committed dependency graph without local package substitutions.
   visual interpretation of Appearance.
 - [`@phreshos/client`](https://github.com/PhreshOS/client) exposes the System
   and Desktop contracts used by the Client.
-- [Setup](https://github.com/PhreshOS/setup-program) owns first-run preparation,
+- [Sprout](https://github.com/PhreshOS/sprout-program) owns first-run preparation,
   not ongoing preferences.
 
 ## Contributing

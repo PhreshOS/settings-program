@@ -1,6 +1,6 @@
 import { DesktopProvider, SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
 import { desktop, system } from "@phreshos/client"
-import { ProgressBar, UIProvider } from "@phreshos/react-ui"
+import { DocumentTheme, ProgressBar, UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
 import { ApplicationProvider } from "./application"
@@ -21,6 +21,7 @@ function ResolvedView() {
     const application = useMemo(() => new Application(), [])
 
     return <UIProvider appearance={appearance} preferences={preferences}>
+        <DocumentTheme />
         <ApplicationProvider application={application}>
             <Settings />
         </ApplicationProvider>
