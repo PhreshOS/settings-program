@@ -18,6 +18,9 @@ export default defineConfig({
     client: {
         location: "dist/client",
         title: "Settings",
+        // Settings opens with room for its sections and a page beside them, as a share of the screen
+        // so it suits every Desktop.
+        size: { width: "60%", height: "70%" },
         devCommand: "vite --config vite.client.ts"
     }
 })
