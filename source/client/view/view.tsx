@@ -1,15 +1,20 @@
 import { DesktopProvider, SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
 import { desktop, system } from "@phreshos/client"
-import { DocumentTheme, ProgressBar, UIProvider } from "@phreshos/react-ui"
+import { DocumentTheme, Loading, UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
 import { ApplicationProvider } from "./application"
-import Settings from "./settings"
+import { ArrivalProvider } from "./components/arrival"
+import Settings from "./settings/settings"
 import "./style.css"
 
+/**
+ * Settings appears once its first section has what it opens with, under one Loading; everything
+ * that changes afterwards changes in place.
+ */
 export default function View() {
-    return <SystemProvider system={system} fallback={<ResourceState message="Opening Settings…" />}>
-        <DesktopProvider desktop={desktop} fallback={<ResourceState message="Opening Desktop…" />}>
+    return <SystemProvider system={system}>
+        <DesktopProvider desktop={desktop}>
             <ResolvedView />
         </DesktopProvider>
     </SystemProvider>
@@ -23,11 +28,9 @@ function ResolvedView() {
     return <UIProvider appearance={appearance} preferences={preferences}>
         <DocumentTheme />
         <ApplicationProvider application={application}>
-            <Settings />
+            <ArrivalProvider>
+                <Loading><Settings /></Loading>
+            </ArrivalProvider>
         </ApplicationProvider>
     </UIProvider>
-}
-
-function ResourceState({ message }: Readonly<{ message: string }>) {
-    return <div className="resource-state"><ProgressBar indeterminate label={message} /></div>
 }

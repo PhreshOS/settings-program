@@ -1,8 +1,63 @@
 import { desktop, system } from "@phreshos/client"
-import type { Appearance, DesktopPreferencesUpdate } from "@phreshos/core"
+import type {
+    Appearance, AuthenticationCredentials, Connection, DesktopPreferencesUpdate, IconSize, Launch, PermissionName, PermissionRequestInput,
+    Permissions, Program, ProgramDefinition, Session, SystemLogRecord
+} from "@phreshos/core"
 
-/** Owns Settings operations and coordinates them with their System authority. */
+/** An installed Program with what Settings shows and changes about it. */
+export type ProgramDetails = Readonly<{
+    program: Program
+    definition: ProgramDefinition
+    permissions: Permissions
+    startup: Launch | null
+    pinned: boolean
+}>
+
+/** A valid Session with the browser Connections it signs in. */
+export type SessionDetails = Readonly<{
+    session: Session
+    connections: readonly Connection[]
+}>
+
+/** Owns Settings operations and reads, and coordinates them with their System authority. */
 export default class Application {
+
+    /** What this System is: its name, version, and release. */
+    public about() {
+        return system.about()
+    }
+
+    /**
+     * The System at a glance: how many Programs are installed and running, how many start with the
+     * System, how many sessions are signed in, and the newest records of what happened.
+     */
+    public async glance() {
+        const [programs, processes, sessions, recent] = await Promise.all([
+            system.program.list({ installed: true }),
+            system.process.list(),
+            system.authentication.sessions(),
+            system.logs.query<SystemLogRecord>("SELECT * FROM logs WHERE level IN ('info', 'warning', 'error') ORDER BY createdAt DESC LIMIT 5")
+        ])
+        const startups = (await Promise.all(programs.map(program => program.startup.get()))).filter(startup => startup !== null).length
+        return { programs: programs.length, processes: processes.length, startups, sessions: sessions.length, recent }
+    }
+
+    /** Calls `change` when what the glance counts changes. */
+    public followGlance(change: () => void) {
+        const stops = [
+            ...(["install", "uninstall"] as const).map(event => system.program.subscribe(event, () => change())),
+            ...(["create", "exit"] as const).map(event => system.process.subscribe(event, () => change())),
+            ...(["sessionCreate", "sessionEnd"] as const).map(event => system.authentication.subscribe(event, () => change())),
+            system.logs.subscribe("log", () => change())
+        ]
+        return () => stops.forEach(stop => stop())
+    }
+
+    /** This System's own icon. */
+    public icon(size?: IconSize) {
+        return system.icon(size)
+    }
+
     public updateAppearance(appearance: Appearance) {
         return system.appearance.update(appearance)
     }
@@ -13,5 +68,113 @@ export default class Application {
 
     public async upload(file: File) {
         return (await system.uploads.write(file)).file
+    }
+
+    /** Every installed Program, by name. */
+    public async programs(): Promise<ProgramDetails[]> {
+        const programs = await system.program.list({ installed: true })
+        const details = await Promise.all(programs.map(program => this.program(program)))
+        return details.sort((first, second) => first.program.name.localeCompare(second.program.name))
+    }
+
+    public async program(program: Program): Promise<ProgramDetails> {
+        const [definition, permissions, startup, pinned] = await Promise.all([
+            program.definition(), program.permissions.all(), program.startup.get(), program.pinned()
+        ])
+        return { program, definition, permissions, startup, pinned }
+    }
+
+    /**
+     * Calls `change` whenever the installed Programs, or what Settings shows about them, change.
+     * Startup is not announced by the System, so Settings reads it again after its own changes only.
+     */
+    public followPrograms(change: () => void) {
+        const stops = (["create", "forget", "install", "uninstall", "pinned", "permissions"] as const)
+            .map(event => system.program.subscribe(event, () => change()))
+        return () => stops.forEach(stop => stop())
+    }
+
+    public allow<Name extends PermissionName>(program: Program, name: Name, permission?: PermissionRequestInput<Name>) {
+        return program.permissions.allow(name, permission)
+    }
+
+    public deny(program: Program, name: PermissionName) {
+        return program.permissions.deny(name)
+    }
+
+    public pin(program: Program, pinned: boolean) {
+        return pinned ? program.pin() : program.unpin()
+    }
+
+    /** Uninstalls a Program; `purge` also removes its storage. */
+    public async uninstall(program: Program, purge: boolean) {
+        for await (const _chunk of program.uninstall({ purge })) { /* The owner sees the result, not the command's output. */ }
+    }
+
+    /**
+     * Starts the Program's default launch with the System. Only the Program knows any other way to
+     * start itself, so the owner can ask for the default one alone.
+     */
+    public setStartup(program: Program) {
+        return program.startup.set()
+    }
+
+    public removeStartup(program: Program) {
+        return program.startup.remove()
+    }
+
+    /** The default Program of each media type. */
+    public openingDefaults() {
+        return system.opening.defaults()
+    }
+
+    public setOpeningDefault(type: string, program: Program) {
+        return system.opening.setDefault(type, program)
+    }
+
+    public clearOpeningDefault(type: string) {
+        return system.opening.clearDefault(type)
+    }
+
+    public authentication() {
+        return Promise.all([system.authentication.state(), system.authentication.requirements()])
+            .then(([state, requirements]) => ({ state, requirements }))
+    }
+
+    public setCredentials(credentials: AuthenticationCredentials) {
+        return system.authentication.setCredentials(credentials)
+    }
+
+    /** Every valid Session with its Connections, and the one this Desktop is signed in with. */
+    public async sessions() {
+        const [sessions, current] = await Promise.all([
+            system.authentication.sessions(),
+            desktop.connection().then(connection => connection.session())
+        ])
+        const details = await Promise.all(sessions.map(async session => ({ session, connections: await session.connections() })))
+        return { sessions: details as readonly SessionDetails[], current: current?.identity ?? null }
+    }
+
+    public followSessions(change: () => void) {
+        const stops = (["sessionCreate", "sessionEnd", "connectionCreate", "connectionDisconnect"] as const)
+            .map(event => system.authentication.subscribe(event, () => change()))
+        return () => stops.forEach(stop => stop())
+    }
+
+    public signOut(session: Session) {
+        return session.signOut()
+    }
+
+    public signOutAllSessions() {
+        return system.authentication.signOutAllSessions()
+    }
+
+    /** The newest System log records, newest first. */
+    public logs(limit: number) {
+        return system.logs.query<SystemLogRecord>("SELECT * FROM logs ORDER BY createdAt DESC LIMIT ?", [limit])
+    }
+
+    public followLogs(record: (record: SystemLogRecord) => void) {
+        return system.logs.subscribe("log", record)
     }
 }

@@ -1,0 +1,67 @@
+import { useEffect, useState } from "react"
+import type { SystemLogLevel, SystemLogRecord } from "@phreshos/core"
+import { AppLayout, Badge, SearchField, SegmentedControl, Table, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { useApplication } from "../application"
+import { ReadView, useRead } from "../components/read"
+import { SectionFooter, SectionHeader } from "../components/section-parts"
+
+/** How many records the page holds: the newest ones, and those that arrive while it is open. */
+const held = 300
+
+type Filter = "all" | "warning" | "error"
+
+const colors: Readonly<Record<SystemLogLevel, "danger" | "warning" | undefined>> = { debug: undefined, info: undefined, warning: "warning", error: "danger" }
+
+/** What the System has recorded, newest first, and new records as they arrive. */
+export default function Logs() {
+    const application = useApplication()
+    const space = useScale(useAppearance().spacing)
+    const read = useRead(() => application.logs(held), [])
+    const [arrived, setArrived] = useState<readonly SystemLogRecord[]>([])
+    const [filter, setFilter] = useState<Filter>("all")
+    const [query, setQuery] = useState("")
+
+    useEffect(() => application.followLogs(record => setArrived(current => [record, ...current].slice(0, held))), [application])
+
+    const terms = query.trim().toLowerCase()
+    const records = [...arrived, ...read.value ?? []].slice(0, held)
+        .filter(record => filter === "all" || record.level === filter || (filter === "warning" && record.level === "error"))
+        .filter(record => !terms || `${record.source} ${record.kind} ${record.content}`.toLowerCase().includes(terms))
+
+    return <>
+        <SectionHeader title="Logs">
+            <SegmentedControl aria-label="Show" size="small" value={filter} onChange={value => setFilter(value as Filter)}>
+                <SegmentedControl.Item id="all">All</SegmentedControl.Item>
+                <SegmentedControl.Item id="warning">Warnings</SegmentedControl.Item>
+                <SegmentedControl.Item id="error">Errors</SegmentedControl.Item>
+            </SegmentedControl>
+            <SearchField aria-label="Search the log" placeholder="Search" size="small" value={query} onChange={setQuery} style={{ width: space.xlarge * 7 }} />
+        </SectionHeader>
+        <AppLayout.Content>
+            <ReadView read={read}>{() => records.length === 0
+                ? <Text tone="secondary" style={{ display: "block", padding: space.xlarge, textAlign: "center" }}>{terms || filter !== "all" ? "No matching records" : "Nothing recorded yet"}</Text>
+                : <Table aria-label="System log" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
+                    <Table.Header>
+                        <Table.Column id="time" style={{ width: space.xlarge * 5 }}>Time</Table.Column>
+                        <Table.Column id="level" style={{ width: space.xlarge * 4 }}>Level</Table.Column>
+                        <Table.Column id="content" rowHeader>Record</Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                        {records.map((record, index) => <Table.Row key={`${record.createdAt}-${index}`} id={`${record.createdAt}-${index}`} textValue={record.content}>
+                            <Table.Cell><Text tone="secondary" size="small" className="tabular">{time(record.createdAt)}</Text></Table.Cell>
+                            <Table.Cell><Badge size="xsmall" color={colors[record.level]}>{record.level}</Badge></Table.Cell>
+                            <Table.Cell><span className="log-content" title={`${record.source} · ${record.kind}`}>{record.content}</span></Table.Cell>
+                        </Table.Row>)}
+                    </Table.Body>
+                </Table>}</ReadView>
+        </AppLayout.Content>
+        <SectionFooter status={read.value ? `Following · the newest ${held} records` : ""} />
+    </>
+}
+
+/** Today's records by their time; older ones by their day too. */
+function time(createdAt: number) {
+    const date = new Date(createdAt)
+    const today = new Date().toDateString() === date.toDateString()
+    return today ? date.toLocaleTimeString() : date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+}

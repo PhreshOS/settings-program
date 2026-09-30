@@ -1,10 +1,10 @@
 import { useState } from "react"
-import { Button, Dialog, Textarea } from "@phreshos/react-ui"
-import { FileDown, FileUp, RotateCcw } from "@phreshos/react-ui/icons"
+import { Button, Dialog, DropdownMenu, Menu, Textarea } from "@phreshos/react-ui"
+import { Ellipsis, FileDown, FileUp, RotateCcw } from "@phreshos/react-ui/icons"
 import { parseAppearance, serializeAppearance } from "./document"
 import { useAppearanceDraft } from "./draft"
 
-/** Moves the draft in and out as a document, or back to the PhreshOS defaults. */
+/** Moves the draft in and out as a document, or back to the PhreshOS defaults, from one menu. */
 export default function AppearanceActions() {
     const { draft, load, reset, saving } = useAppearanceDraft()
     const [transfer, setTransfer] = useState<"import" | "export" | null>(null)
@@ -28,9 +28,17 @@ export default function AppearanceActions() {
     }
 
     return <>
-        <Button size="small" disabled={saving} onPress={() => open("import")}><FileUp />Import</Button>
-        <Button size="small" onPress={() => open("export")}><FileDown />Export</Button>
-        <Button size="small" disabled={saving} onPress={reset}><RotateCcw />Defaults</Button>
+        <DropdownMenu>
+            <DropdownMenu.Trigger iconOnly depth="flat" size="small" aria-label="More"><Ellipsis /></DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+                <Menu aria-label="Appearance document" size="small" onAction={action => action === "defaults" ? reset() : open(action as "import" | "export")}>
+                    <Menu.Item id="import" disabled={saving}><FileUp />Import…</Menu.Item>
+                    <Menu.Item id="export"><FileDown />Export…</Menu.Item>
+                    <Menu.Separator />
+                    <Menu.Item id="defaults" disabled={saving}><RotateCcw />Load the defaults</Menu.Item>
+                </Menu>
+            </DropdownMenu.Content>
+        </DropdownMenu>
         <Dialog open={transfer !== null} onOpenChange={next => { if (!next) setTransfer(null) }}>
             <Dialog.Backdrop dismissable>
                 <Dialog.Content>

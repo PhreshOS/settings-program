@@ -7,14 +7,11 @@ export default defineConfig({
     version: "0.1.39",
     icon: "icon.png",
     categories: ["System"],
-    keywords: ["settings", "appearance", "theme"],
+    keywords: ["settings", "appearance", "theme", "programs", "permissions", "sessions"],
     website: "https://github.com/PhreshOS/settings-program",
     buildCommand: "vite-node scripts/build.ts",
-    permissions: {
-        appearance: true,
-        desktopPreferences: true,
-        uploads: true
-    },
+    // Settings manages the whole System: assigning Program permissions alone already needs `all`.
+    permissions: { all: true },
     client: {
         location: "dist/client",
         title: "Settings",

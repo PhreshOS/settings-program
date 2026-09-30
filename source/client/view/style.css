@@ -17,27 +17,16 @@ body {
     background: transparent;
 }
 
-.resource-state {
-    width: min(22rem, calc(100% - 2rem));
-    height: 100%;
-    margin-inline: auto;
-    display: grid;
-    place-items: center;
-}
+.truncate { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabular { font-variant-numeric: tabular-nums; }
 
-/* The page's name and what it holds, beside its icon in the header. */
-.page-heading {
-    display: grid;
-    flex: 1 1 auto;
-    min-width: 0;
-}
+/* The sections: quiet group names between their lists. */
+.navigation { display: grid; gap: 0.125rem; }
+.navigation-heading { display: block; }
 
-.page-heading > strong { font-size: 0.8125em; }
+/* Rows of one Group, divided by a hairline in the text color. */
+.row + .row { border-top: 1px solid color-mix(in oklab, currentColor 9%, transparent); }
 
-.page-heading > span {
-    overflow: hidden;
-    font-size: 0.6875em;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    opacity: 0.66;
-}
+/* A log record's text keeps its own spacing and wraps anywhere. */
+.log-content { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125em; }

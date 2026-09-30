@@ -10,11 +10,7 @@ test("build contract", async () => {
   assert.equal(config.version, manifest.version)
   assert.equal(config.server, undefined)
   assert.equal(config.client?.location, "dist/client")
-  assert.deepEqual(config.permissions, {
-      appearance: true,
-      desktopPreferences: true,
-      uploads: true
-  })
+  assert.deepEqual(config.permissions, { all: true })
 
   const page = readFileSync("dist/client/index.html", "utf8")
   const client = readdirSync("dist/client/assets")
@@ -23,9 +19,9 @@ test("build contract", async () => {
 
   assert.match(page, /<html/i)
   assert.match(client, /Appearance/)
-  // Both categories and their pages reach the bundle.
-  assert.match(client, /Theme, animations, and scale on this desktop only/)
-  assert.match(client, /Overlay windows/)
-  assert.match(client, /Wallpapers/)
+  // Every section reaches the bundle.
+  for (const section of ["Overview", "Appearance", "Desktop", "Programs", "Startup", "Defaults", "Sign-in", "Sessions", "Logs"]) {
+      assert.match(client, new RegExp(section))
+  }
   assert.match(client, /appearance\.update/)
 }, 120_000)

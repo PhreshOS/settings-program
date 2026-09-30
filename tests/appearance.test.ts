@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { defaultAppearance } from "@phreshos/core"
-import { parseAppearance, serializeAppearance } from "../source/client/view/categories/appearance/document"
+import { parseAppearance, serializeAppearance } from "../source/client/view/sections/appearance/document"
 import { test } from "vitest"
 
 test("appearance contract", async () => {
@@ -44,7 +44,7 @@ test("appearance contract", async () => {
   )
   assert.throws(() => parseAppearance(JSON.stringify({
       ...defaultAppearance,
-      transaction: { duration: 120, easing: [2, 0, 0.5, 1] }
-  })), /Appearance.transaction.easing/)
+      tempo: 5
+  })), /Appearance.tempo/)
   console.log("Appearance document contracts passed")
 }, 120_000)
