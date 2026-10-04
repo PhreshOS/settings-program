@@ -18,10 +18,10 @@ type Slot = "signInWallpaper" | "desktopWallpaper"
  */
 export default function Wallpapers() {
     return <>
-        <Group title="Desktop" description="Behind the windows. Without one, the release's own wallpaper stands there.">
+        <Group title="Desktop" description="Behind the windows: an image, a video, or an HTML page. Without one, the release's own wallpaper stands there.">
             <Pair slot="desktopWallpaper" title="Desktop" />
         </Group>
-        <Group title="Sign-in screen" description="Behind the sign-in form, before anyone signs in.">
+        <Group title="Sign-in screen" description="Behind the sign-in form, before anyone signs in: an image, a video, or an HTML page.">
             <Pair slot="signInWallpaper" title="Sign-in screen" />
         </Group>
     </>
