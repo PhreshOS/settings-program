@@ -16,9 +16,8 @@ export default function Startup() {
     const space = useScale(useAppearance().spacing)
     const programs = useRead(() => application.programs(), [], change => application.followPrograms(change))
     const [problem, setProblem] = useState<string | null>(null)
-    // Startup is not announced, so after removing one the Programs are read again.
     const removing = usePromise(async (details: NonNullable<typeof programs.value>[number]) => {
-        try { await application.removeStartup(details.program); setProblem(null); programs.retry() }
+        try { await application.removeStartup(details.program); setProblem(null) }
         catch (error) { setProblem(error instanceof Error ? error.message : "It could not be removed."); throw error }
     })
     const starting = (programs.value ?? []).filter(entry => entry.startup !== null)

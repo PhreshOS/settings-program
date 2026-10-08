@@ -14,9 +14,8 @@ import { permissionPresentation } from "./presentation"
 export default function ProgramView({ identity, programs }: Readonly<{ identity: string, programs: Read<ProgramDetails[]> }>) {
     const details = programs.value?.find(entry => entry.program.identity === identity)
     const [problem, setProblem] = useState<string | null>(null)
-    // Startup is not announced, so after changing it here the Programs are read again.
     const report = (error: unknown) => setProblem(error instanceof Error ? error.message : "The change did not apply.")
-    const changed = () => { setProblem(null); programs.retry() }
+    const changed = () => setProblem(null)
 
     return <>
         <SectionHeader title={details?.program.name ?? identity} above={{ title: "Programs", address: "programs" }} />

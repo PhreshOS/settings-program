@@ -32,20 +32,20 @@ export default class Application {
      * System, how many sessions are signed in, and the newest records of what happened.
      */
     public async glance() {
-        const [programs, processes, sessions, recent] = await Promise.all([
+        const [programs, startups, processes, sessions, recent] = await Promise.all([
             system.program.list({ installed: true }),
+            system.program.list({ installed: true, startup: true }),
             system.process.list(),
             system.authentication.sessions(),
             system.logs.query<SystemLogRecord>("SELECT * FROM logs WHERE level IN ('info', 'warning', 'error') ORDER BY createdAt DESC LIMIT 5")
         ])
-        const startups = (await Promise.all(programs.map(program => program.startup.get()))).filter(startup => startup !== null).length
-        return { programs: programs.length, processes: processes.length, startups, sessions: sessions.length, recent }
+        return { programs: programs.length, processes: processes.length, startups: startups.length, sessions: sessions.length, recent }
     }
 
     /** Calls `change` when what the glance counts changes. */
     public followGlance(change: () => void) {
         const stops = [
-            ...(["install", "uninstall"] as const).map(event => system.program.subscribe(event, () => change())),
+            ...(["install", "uninstall", "changeStartup"] as const).map(event => system.program.subscribe(event, () => change())),
             ...(["create", "exit"] as const).map(event => system.process.subscribe(event, () => change())),
             ...(["sessionCreate", "sessionEnd"] as const).map(event => system.authentication.subscribe(event, () => change())),
             system.logs.subscribe("log", () => change())
@@ -84,12 +84,9 @@ export default class Application {
         return { program, definition, permissions, startup, pinned }
     }
 
-    /**
-     * Calls `change` whenever the installed Programs, or what Settings shows about them, change.
-     * Startup is not announced by the System, so Settings reads it again after its own changes only.
-     */
+    /** Calls `change` whenever the installed Programs, or what Settings shows about them, change. */
     public followPrograms(change: () => void) {
-        const stops = (["create", "forget", "install", "uninstall", "pinned", "permissions"] as const)
+        const stops = (["create", "forget", "install", "uninstall", "pin", "changePermissions", "changeStartup"] as const)
             .map(event => system.program.subscribe(event, () => change()))
         return () => stops.forEach(stop => stop())
     }
@@ -103,7 +100,7 @@ export default class Application {
     }
 
     public pin(program: Program, pinned: boolean) {
-        return pinned ? program.pin() : program.unpin()
+        return program.pin(pinned)
     }
 
     /** Uninstalls a Program; `purge` also removes its storage. */
