@@ -62,7 +62,7 @@ function Gallery() {
         </SectionHeader>
         <AppLayout.Content>
             <Page wide>
-                <GridList aria-label="Appearances" selectionMode="single" color="default" itemWidth={space.xlarge * 7} style={{ alignContent: "start", outline: "none" }} value={inUse?.key ?? current}
+                <GridList aria-label="Appearances" selectionMode="single" itemWidth={space.xlarge * 7} style={{ alignContent: "start", outline: "none" }} value={inUse?.key ?? current}
                     onChange={key => {
                         if (key === create) go("appearance/customize")
                         else if (key && key !== current) void applying.safeExecute(key)
