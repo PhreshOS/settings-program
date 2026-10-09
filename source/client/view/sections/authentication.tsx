@@ -48,7 +48,7 @@ export default function Authentication() {
                 <Group title="Sessions" description="Each sign-in. It stays valid while a browser uses it, and for a day after the last one leaves.">
                     <ScrollArea axis="horizontal"><Table aria-label="Sessions" size="small">
                         <Table.Header>
-                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 7}>Signed in from</Table.Column>
+                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 4}>Signed in from</Table.Column>
                             <Table.Column id="signed-in" width={space.xlarge * 4.5}>Signed in</Table.Column>
                             <Table.Column id="active" width={space.xlarge * 4}>Last active</Table.Column>
                             <Table.Column id="browsers" width={space.xlarge * 3.5}>Browsers</Table.Column>
@@ -73,7 +73,7 @@ export default function Authentication() {
                 <Group title="Connections" description="The browsers connected now, signed in or not.">
                     <ScrollArea axis="horizontal"><Table aria-label="Connections" size="small">
                         <Table.Header>
-                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 7}>Browser</Table.Column>
+                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 4}>Browser</Table.Column>
                             <Table.Column id="connected" width={space.xlarge * 4}>Connected</Table.Column>
                             <Table.Column id="session" width={space.xlarge * 3.5}>Signed in</Table.Column>
                             <Table.Column id="admit" width={space.xlarge * 3.5}> </Table.Column>

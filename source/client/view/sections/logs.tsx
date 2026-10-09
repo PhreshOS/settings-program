@@ -44,7 +44,7 @@ export default function Logs() {
                     <Table.Header>
                         <Table.Column id="time" width={space.xlarge * 5}>Time</Table.Column>
                         <Table.Column id="level" width={space.xlarge * 4}>Level</Table.Column>
-                        <Table.Column id="content" rowHeader minWidth={space.xlarge * 8}>Record</Table.Column>
+                        <Table.Column id="content" rowHeader minWidth={space.xlarge * 6}>Record</Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {records.map((record, index) => <Table.Row key={`${record.createdAt}-${index}`} id={`${record.createdAt}-${index}`} textValue={record.content}>

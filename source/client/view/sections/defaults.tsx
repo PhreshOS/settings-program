@@ -53,8 +53,8 @@ export default function Defaults() {
                 ? <Empty>No installed Program opens a type of its own yet.</Empty>
                 : <ScrollArea axis="horizontal"><Table aria-label="Defaults" size="small">
                     <Table.Header>
-                        <Table.Column id="type" rowHeader minWidth={space.xlarge * 8}>Type</Table.Column>
-                        <Table.Column id="program" width={space.xlarge * 12}>Opens with</Table.Column>
+                        <Table.Column id="type" rowHeader minWidth={space.xlarge * 5}>Type</Table.Column>
+                        <Table.Column id="program" width={space.xlarge * 10}>Opens with</Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {types.map(type => <Table.Row key={type} id={type} textValue={type}>

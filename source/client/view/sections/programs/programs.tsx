@@ -38,7 +38,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
                 ? <Empty>{terms ? "No matching Programs" : "No installed Programs"}</Empty>
                 : <ScrollArea axis="horizontal"><Table aria-label="Programs" size="small" onAction={identity => go(`programs/${identity}`)}>
                     <Table.Header>
-                        <Table.Column id="name" rowHeader minWidth={space.xlarge * 7}>Name</Table.Column>
+                        <Table.Column id="name" rowHeader minWidth={space.xlarge * 4}>Name</Table.Column>
                         <Table.Column id="version" width={space.xlarge * 3.5}>Version</Table.Column>
                         {/* A narrow window keeps the name room; the rest shows on the Program's own page. */}
                         {!narrow && <Table.Column id="category" width={space.xlarge * 4.5}>Category</Table.Column>}

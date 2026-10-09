@@ -98,7 +98,7 @@ function Output({ process }: Readonly<{ process: Process }>) {
                 <Table.Header>
                     <Table.Column id="time" width={space.xlarge * 4}>Time</Table.Column>
                     <Table.Column id="source" width={space.xlarge * 3}>From</Table.Column>
-                    <Table.Column id="content" rowHeader minWidth={space.xlarge * 8}>Line</Table.Column>
+                    <Table.Column id="content" rowHeader minWidth={space.xlarge * 6}>Line</Table.Column>
                 </Table.Header>
                 <Table.Body>
                     {lines.map((line, index) => <Table.Row key={`${line.createdAt}-${index}`} id={`${line.createdAt}-${index}`} textValue={line.content}>

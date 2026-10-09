@@ -38,12 +38,12 @@ function ProcessList() {
                 ? <Empty>{terms ? "No matching Processes" : "Nothing is running"}</Empty>
                 : <ScrollArea axis="horizontal"><Table aria-label="Processes" size="small" onAction={identity => go(`processes/${identity}`)}>
                     <Table.Header>
-                        <Table.Column id="process" rowHeader minWidth={space.xlarge * 6}>Process</Table.Column>
-                        <Table.Column id="program" width={space.xlarge * 5}>Program</Table.Column>
-                        {!narrow && <Table.Column id="started" width={space.xlarge * 4}>Started</Table.Column>}
-                        <Table.Column id="server" width={space.xlarge * 4.5}>Server</Table.Column>
-                        <Table.Column id="client" width={space.xlarge * 4.5}>Client</Table.Column>
-                        <Table.Column id="end" aria-label="End" width={space.xlarge * 3}> </Table.Column>
+                        <Table.Column id="process" rowHeader minWidth={space.xlarge * 3}>Process</Table.Column>
+                        <Table.Column id="program" width={space.xlarge * 4}>Program</Table.Column>
+                        {!narrow && <Table.Column id="started" width={space.xlarge * 3.5}>Started</Table.Column>}
+                        <Table.Column id="server" width={space.xlarge * 3.5}>Server</Table.Column>
+                        <Table.Column id="client" width={space.xlarge * 3.5}>Client</Table.Column>
+                        <Table.Column id="end" aria-label="End" width={space.xlarge * 2.5}> </Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {shown.map(({ process, program, server, client }) => <Table.Row key={process.identity} id={process.identity} textValue={process.name ?? process.identity}>

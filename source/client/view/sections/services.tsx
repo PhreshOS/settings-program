@@ -31,8 +31,8 @@ export default function Services() {
                 : <ScrollArea axis="horizontal"><Table aria-label="Services" size="small"
                     onAction={key => { const process = shown.find(entry => key === id(entry))?.process; if (process) go(`processes/${process}`) }}>
                     <Table.Header>
-                        <Table.Column id="service" rowHeader minWidth={space.xlarge * 6}>Service</Table.Column>
-                        <Table.Column id="program" width={space.xlarge * 5}>Program</Table.Column>
+                        <Table.Column id="service" rowHeader minWidth={space.xlarge * 3}>Service</Table.Column>
+                        <Table.Column id="program" width={space.xlarge * 4}>Program</Table.Column>
                         <Table.Column id="side" width={space.xlarge * 3.5}>Endpoint</Table.Column>
                     </Table.Header>
                     <Table.Body>
