@@ -20,7 +20,7 @@ test("build contract", async () => {
   assert.match(page, /<html/i)
   assert.match(client, /Appearance/)
   // Every section reaches the bundle.
-  for (const section of ["Overview", "Appearance", "Desktop", "Programs", "Startup", "Defaults", "Sign-in", "Sessions", "Logs"]) {
+  for (const section of ["Overview", "Programs", "Startup", "Defaults", "Preferences", "Appearance", "Authentication", "Logs"]) {
       assert.match(client, new RegExp(section))
   }
   assert.match(client, /appearance\.update/)
