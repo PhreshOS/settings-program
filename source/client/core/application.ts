@@ -260,14 +260,16 @@ export default class Application {
         return process.exit()
     }
 
-    /** The newest lines one Process printed, newest first. */
-    public output(process: Process, limit: number) {
-        return process.program().logs.query<ProgramLogRecord>("SELECT * FROM logs WHERE process = ? ORDER BY createdAt DESC LIMIT ?", [process.identity, limit])
+    /** The newest lines a Program printed, newest first: those of one Process, or of all of them. */
+    public output(program: Program, process: string | null, limit: number) {
+        return process === null
+            ? program.logs.query<ProgramLogRecord>("SELECT * FROM logs ORDER BY createdAt DESC LIMIT ?", [limit])
+            : program.logs.query<ProgramLogRecord>("SELECT * FROM logs WHERE process = ? ORDER BY createdAt DESC LIMIT ?", [process, limit])
     }
 
-    /** Calls `record` with each line the Process prints from now on. */
-    public followOutput(process: Process, record: (record: ProgramLogRecord) => void) {
-        return process.program().logs.subscribe("log", line => { if (line.process === process.identity) record(line) })
+    /** Calls `record` with each line the Program prints from now on: of one Process, or of all of them. */
+    public followOutput(program: Program, process: string | null, record: (record: ProgramLogRecord) => void) {
+        return program.logs.subscribe("log", line => { if (process === null || line.process === process) record(line) })
     }
 
     /** Every ready Service, by Program name and then by name. */

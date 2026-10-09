@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react"
-import type { Process, ProgramLogRecord } from "@phreshos/core"
-import { AppLayout, Badge, Button, Flex, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
+import { useState } from "react"
+import { AppLayout, Button, Flex, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
 import { ReadView, useRead } from "../../components/read"
-import LogLine from "../../components/log-line"
+import Output from "../../components/output"
 import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { ago } from "../overview"
@@ -71,43 +70,6 @@ function ProcessPage({ details }: Readonly<{ details: Details }>) {
             {client && <Row label="Client" description="Its Window on the Desktop."><Side state={client} /></Row>}
         </Group>
 
-        <Output process={process} />
+        <Output program={program} process={process.identity} description="What it prints, as it prints it." />
     </Page>
-}
-
-/** How many lines the page holds: the newest ones, and those printed while it is open. */
-const held = 200
-
-/** What the Process printed, newest first, and new lines as they arrive. */
-function Output({ process }: Readonly<{ process: Process }>) {
-    const application = useApplication()
-    const space = useScale(useAppearance().spacing)
-    const read = useRead(() => application.output(process, held), [process.identity])
-    const [arrived, setArrived] = useState<readonly ProgramLogRecord[]>([])
-
-    useEffect(() => {
-        setArrived([])
-        return application.followOutput(process, record => setArrived(current => [record, ...current].slice(0, held)))
-    }, [application, process.identity])
-
-    const lines = [...arrived, ...read.value ?? []].slice(0, held)
-
-    return <Group title="Output" description="What it prints, as it prints it.">
-        {lines.length === 0
-            ? <Row label={read.value ? "Nothing printed yet" : "Reading"} />
-            : <ScrollArea axis="horizontal"><Table aria-label="Output" size="small">
-                <Table.Header>
-                    <Table.Column id="time" width={space.xlarge * 4}>Time</Table.Column>
-                    <Table.Column id="source" width={space.xlarge * 3}>From</Table.Column>
-                    <Table.Column id="content" rowHeader minWidth={space.xlarge * 6}>Line</Table.Column>
-                </Table.Header>
-                <Table.Body>
-                    {lines.map((line, index) => <Table.Row key={`${line.createdAt}-${index}`} id={`${line.createdAt}-${index}`} textValue={line.content}>
-                        <Table.Cell><Text tone="secondary" size="small" className="tabular">{new Date(line.createdAt).toLocaleTimeString()}</Text></Table.Cell>
-                        <Table.Cell><Badge size="xsmall" color={line.kind === "error" || line.kind === "stderr" ? "danger" : line.kind === "warn" ? "warning" : undefined}>{line.source}</Badge></Table.Cell>
-                        <Table.Cell><LogLine content={line.content} /></Table.Cell>
-                    </Table.Row>)}
-                </Table.Body>
-            </Table></ScrollArea>}
-    </Group>
 }

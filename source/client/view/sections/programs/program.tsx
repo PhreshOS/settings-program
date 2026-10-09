@@ -10,6 +10,7 @@ import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../com
 import { useFrame } from "../../settings/frame"
 import { useControls } from "../../components/controls"
 import { permissionPresentation } from "./presentation"
+import Output from "../../components/output"
 
 /** One installed Program: what it may do, what it does with the System, and its removal. */
 export default function ProgramView({ identity, programs }: Readonly<{ identity: string, programs: Read<ProgramDetails[]> }>) {
@@ -71,6 +72,8 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
                 </TagGroup>
             </div>
         </Group>}
+
+        <Output program={program} process={null} description="What all its Processes print, as they print it." />
     </Page>
 }
 
