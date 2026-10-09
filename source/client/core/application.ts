@@ -125,9 +125,14 @@ export default class Application {
         return program.startup.remove()
     }
 
-    /** The default Program of each media type. */
+    /** The default Program of each media type and family. */
     public openingDefaults() {
         return system.opening.defaults()
+    }
+
+    /** Calls `change` whenever a default changes. */
+    public followOpeningDefaults(change: () => void) {
+        return system.opening.subscribe("changeDefault", () => change())
     }
 
     public setOpeningDefault(type: string, program: Program) {
