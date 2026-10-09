@@ -23,7 +23,7 @@ const materialNames: Readonly<Record<keyof AppearanceMaterial, string>> = {
 }
 
 const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
-    opacity: "Shadow", blur: "Shadow blur", x: "Shadow across", y: "Shadow down", spread: "Shadow spread"
+    opacity: "Opacity", blur: "Blur", x: "Across", y: "Down", spread: "Spread"
 }
 
 /**
@@ -88,13 +88,15 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                                 <Measure label="Corners" value={draft.radius} range={appearanceLimits.radius} onChange={radius => change({ ...draft, radius })} />
                             </Row>
                         </Group>
-                        <Group title="Surfaces" aside={<Columns />}>
+                        <Group title="Material" description="How every surface lets through what is behind it." aside={<Columns />}>
                             {(Object.keys(materialNames) as (keyof AppearanceMaterial)[]).map(key => <Row key={key} label={materialNames[key]}>
                                 {modes.map(mode => <Measure key={mode} label={`${materialNames[key]}, ${mode}`} value={(draft.material[mode] ?? draft.material.light)[key]}
                                     range={appearanceLimits.material[key]} onChange={value => themed("material", mode, { [key]: value })} />)}
                             </Row>)}
+                        </Group>
+                        <Group title="Shadow" description="Beneath raised surfaces, windows included." aside={<Columns />}>
                             {(Object.keys(shadowNames) as (keyof AppearanceShadow)[]).map(key => <Row key={key} label={shadowNames[key]}>
-                                {modes.map(mode => <Measure key={mode} label={`${shadowNames[key]}, ${mode}`} value={(draft.shadow[mode] ?? draft.shadow.light)[key]}
+                                {modes.map(mode => <Measure key={mode} label={`Shadow ${shadowNames[key].toLowerCase()}, ${mode}`} value={(draft.shadow[mode] ?? draft.shadow.light)[key]}
                                     range={appearanceLimits.shadow[key]} onChange={value => themed("shadow", mode, { [key]: value })} />)}
                             </Row>)}
                         </Group>
