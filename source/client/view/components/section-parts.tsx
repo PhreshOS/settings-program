@@ -32,8 +32,9 @@ export function SectionFooter({ status, problem = false, children }: Readonly<{ 
     const danger = useColor("danger").base
 
     return <AppLayout.Footer style={{ paddingInline: space.small, paddingTop: space.medium }}>
-        <span role="status" className="truncate" style={{ flex: "1 1 auto", minWidth: 0 }}>
-            <Text tone={problem ? undefined : "secondary"} size="small" className="tabular" style={problem ? { color: danger } : undefined}>{status}</Text>
+        {/* At the end of the row, as every footer of an AppLayout. */}
+        <span role="status" style={{ display: "flex", minWidth: 0 }}>
+            <Text truncate tone={problem ? undefined : "secondary"} size="small" className="tabular" style={problem ? { color: danger } : undefined}>{status}</Text>
         </span>
         {children}
     </AppLayout.Footer>
