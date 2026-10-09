@@ -98,7 +98,8 @@ function span(milliseconds: number) {
     return `${rest} min`
 }
 
-function ago(time: number) {
+/** How long ago something happened, in words. */
+export function ago(time: number) {
     const minutes = Math.floor((Date.now() - time) / 60_000)
     if (minutes < 1) return "now"
     if (minutes < 60) return `${minutes} min ago`

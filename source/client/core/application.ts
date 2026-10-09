@@ -16,6 +16,8 @@ export type ProgramDetails = Readonly<{
 export type SessionDetails = Readonly<{
     session: Session
     connections: readonly Connection[]
+    /** Now while a browser uses it; otherwise when the last one left. */
+    lastActiveAt: Date | null
 }>
 
 /** Owns Settings operations and reads, and coordinates them with their System authority. */
@@ -162,7 +164,10 @@ export default class Application {
             system.authentication.sessions(),
             desktop.connection().then(connection => connection.session())
         ])
-        const details = await Promise.all(sessions.map(async session => ({ session, connections: await session.connections() })))
+        const details = await Promise.all(sessions.map(async session => {
+            const [connections, lastActiveAt] = await Promise.all([session.connections(), session.lastActiveAt()])
+            return { session, connections, lastActiveAt }
+        }))
         return { sessions: details as readonly SessionDetails[], current: current?.identity ?? null }
     }
 

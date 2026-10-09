@@ -6,6 +6,7 @@ import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
 import { SectionFooter, SectionHeader } from "../components/section-parts"
 import { count } from "./programs/programs"
+import { ago } from "./overview"
 
 /** The Sessions signed in to this System, with the browsers they carry, and the way to end them. */
 export default function Sessions() {
@@ -42,17 +43,21 @@ export default function Sessions() {
             <ReadView read={read}>{({ current }) => <Table aria-label="Sessions" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
                 <Table.Header>
                     <Table.Column id="session" rowHeader>Session</Table.Column>
-                    <Table.Column id="connections" style={{ width: space.xlarge * 6 }}>Browsers connected</Table.Column>
+                    <Table.Column id="signed-in" style={{ width: space.xlarge * 5 }}>Signed in</Table.Column>
+                    <Table.Column id="active" style={{ width: space.xlarge * 5 }}>Last active</Table.Column>
+                    <Table.Column id="connections" style={{ width: space.xlarge * 5 }}>Browsers</Table.Column>
                     <Table.Column id="end" style={{ width: space.xlarge * 5 }}> </Table.Column>
                 </Table.Header>
                 <Table.Body>
-                    {sessions.map(({ session, connections }) => <Table.Row key={session.identity} id={session.identity} textValue={session.identity}>
+                    {sessions.map(({ session, connections, lastActiveAt }) => <Table.Row key={session.identity} id={session.identity} textValue={session.identity}>
                         <Table.Cell>
                             <span style={{ display: "flex", alignItems: "center", gap: space.small, minWidth: 0 }}>
                                 <span className="mono truncate">{session.identity}</span>
                                 {session.identity === current && <Badge size="xsmall" color="success">This browser</Badge>}
                             </span>
                         </Table.Cell>
+                        <Table.Cell><Text tone="secondary" className="tabular">{session.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</Text></Table.Cell>
+                        <Table.Cell><Text tone="secondary" className="tabular">{connections.length ? "Now" : lastActiveAt ? ago(lastActiveAt.getTime()) : "—"}</Text></Table.Cell>
                         <Table.Cell><Text tone="secondary" className="tabular">{connections.length || "None"}</Text></Table.Cell>
                         <Table.Cell><Button size="xsmall" disabled={ending.isPending} onPress={() => void ending.safeExecute(session)}>Sign out</Button></Table.Cell>
                     </Table.Row>)}
