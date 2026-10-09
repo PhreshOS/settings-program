@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react"
-import { appearanceLimits, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type TaskbarPosition, type Theme } from "@phreshos/core"
+import { appearanceLimits, systemWallpapers, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpaper, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
-import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, Flex, Grid, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, Grid, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
-import { lookOf, type Look } from "@client/core/appearances"
+import { sameAppearance } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { useFrame } from "../../settings/frame"
 import { Group, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
 import { useLibrary } from "./library"
 import SaveDialog from "./save-dialog"
+import { wallpaperFiles, wallpaperLimit, wallpaperSource } from "./wallpaper"
 
 const modes: readonly Theme[] = ["light", "dark"]
 
@@ -26,11 +27,13 @@ const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
     opacity: "Opacity", blur: "Blur", x: "Across", y: "Down", spread: "Spread"
 }
 
+const wallpaperNames: Readonly<Record<keyof AppearanceWallpaper, string>> = { signIn: "Sign-in", desktop: "Desktop" }
+
 /**
  * The Appearance in use, changed in place: every change applies to every Desktop a moment after it
  * settles, so dragging a slider sends where it ends. Light and dark stand side by side, so there is
- * nothing to switch between. Its wallpapers are left as they are. Save keeps the result among the
- * owner's Appearances, or in the one being edited, and returns to them all.
+ * nothing to switch between. Save keeps the result among the owner's Appearances, or in the one
+ * being edited, and returns to them all.
  */
 export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     useArrival(true)
@@ -38,19 +41,19 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     const library = useLibrary()
     const { go } = useFrame()
     const edited = editing === undefined ? null : library.saved.find(entry => entry.id === editing) ?? null
-    const authoritative = lookOf(useSystemAppearance())
+    const authoritative = useSystemAppearance()
     const [draft, setDraft] = useState(authoritative)
     const [problem, setProblem] = useState<string | null>(null)
+    const [uploading, setUploading] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
     const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // What the System holds replaces the draft, unless a change of this page is still on its way.
     const held = JSON.stringify(authoritative)
-    useEffect(() => { if (pending.current === null) setDraft(JSON.parse(held) as Look) }, [held])
+    useEffect(() => { if (pending.current === null) setDraft(JSON.parse(held) as Appearance) }, [held])
     useEffect(() => () => { if (pending.current) clearTimeout(pending.current) }, [])
 
-    // The look alone is sent: what is left out, the wallpapers, stays as it is.
-    function change(next: Look) {
+    function change(next: Appearance) {
         setDraft(next)
         if (pending.current) clearTimeout(pending.current)
         pending.current = setTimeout(() => {
@@ -59,10 +62,24 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
         }, 250)
     }
 
-    const themed = <Key extends "colors" | "material" | "shadow">(key: Key, mode: Theme, value: Partial<NonNullable<Look[Key]["light"]>>) =>
+    const themed = <Key extends "colors" | "material" | "shadow" | "wallpaper">(key: Key, mode: Theme, value: Partial<NonNullable<Appearance[Key]["light"]>>) =>
         change({ ...draft, [key]: { ...draft[key], [mode]: { ...(draft[key][mode] ?? draft[key].light), ...value } } })
 
     const taskbar = draft.taskbar
+
+    // The file becomes an upload first; the System refuses a wallpaper it cannot show.
+    async function chooseWallpaper(mode: Theme, place: keyof AppearanceWallpaper, file: File | undefined) {
+        if (!file) return
+        if (file.size > wallpaperLimit) return setProblem("A wallpaper cannot exceed 50 MB.")
+        setUploading(`${mode}:${place}`)
+        try {
+            themed("wallpaper", mode, { [place]: await application.upload(file) })
+        } catch (error) {
+            setProblem(error instanceof Error ? error.message : "The file could not be uploaded.")
+        } finally {
+            setUploading(null)
+        }
+    }
 
     return <>
         <SectionHeader title={edited?.name ?? "Customize"} above={{ title: "Appearance", address: "appearance" }}>
@@ -105,6 +122,19 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                                 <Measure label="Tempo" value={draft.tempo} range={appearanceLimits.tempo} step={0.05} onChange={tempo => change({ ...draft, tempo })} />
                             </Row>
                         </Group>
+                        <Group title="Wallpapers" description="An image, a video, or an offline HTML page, up to 50 MB." aside={<Columns />}>
+                            {(Object.keys(wallpaperNames) as (keyof AppearanceWallpaper)[]).map(place => <Row key={place} label={wallpaperNames[place]}>
+                                {modes.map(mode => <FileTrigger key={mode} accept={wallpaperFiles} onSelect={files => void chooseWallpaper(mode, place, files[0])}>
+                                    <Button size="small" aria-label={`${wallpaperNames[place]} wallpaper, ${mode}`} pending={uploading === `${mode}:${place}`}
+                                        style={{ width: "6.5rem", height: "3.75rem", padding: 0, overflow: "hidden" }}>
+                                        <Thumbnail file={draft.wallpaper[mode][place]} />
+                                    </Button>
+                                </FileTrigger>)}
+                            </Row>)}
+                            <Row label="The System's own" description="Puts back the wallpapers this release comes with.">
+                                <Button size="small" disabled={sameAppearance(draft.wallpaper, systemWallpapers)} onPress={() => change({ ...draft, wallpaper: systemWallpapers })}>Use</Button>
+                            </Row>
+                        </Group>
                         <Group title="Taskbar">
                             <Row label="Edge">
                                 <SegmentedControl aria-label="Edge" size="small" value={taskbar.position} onChange={position => change({ ...draft, taskbar: { ...taskbar, position: position as TaskbarPosition } })}>
@@ -137,6 +167,15 @@ function Columns() {
     return <Flex gap="small" style={{ paddingInlineEnd: space.medium }}>
         {modes.map(mode => <Text key={mode} size="xsmall" tone="secondary" style={{ width: "6.5rem" }}>{mode === "light" ? "Light" : "Dark"}</Text>)}
     </Flex>
+}
+
+/** A wallpaper, small: a picture or a video's first frame; a page is named, since it runs only on the Desktop. */
+function Thumbnail({ file }: Readonly<{ file: string }>) {
+    const { url, kind } = wallpaperSource(file)
+    const cover = { width: "100%", height: "100%", objectFit: "cover", display: "block" } as const
+    if (kind === "image") return <img src={url} alt="" draggable={false} style={cover} />
+    if (kind === "video") return <video src={url} muted playsInline preload="metadata" style={cover} />
+    return <Text size="xsmall" tone="secondary">Page</Text>
 }
 
 /** One color, shown as it is stored and chosen in a picker. */

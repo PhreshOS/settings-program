@@ -72,12 +72,6 @@ export default class Application {
         return (await system.uploads.write(file)).file
     }
 
-    /** Uploads one of Settings' own files, such as a ready wallpaper, and returns its address. */
-    public async uploadAsset(url: string, name: string) {
-        const blob = await (await fetch(url)).blob()
-        return this.upload(new File([blob], name, { type: blob.type }))
-    }
-
     /** Every installed Program, by name. */
     public async programs(): Promise<ProgramDetails[]> {
         const programs = await system.program.list({ installed: true })

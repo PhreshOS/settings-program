@@ -11,7 +11,7 @@ test("appearance contract", async () => {
       ...defaultAppearance,
       shadow: { ...defaultAppearance.shadow, light: { x: -4, y: 12, blur: 32, spread: -2, opacity: 0.3 } },
       taskbar: { position: "left" as const, size: 62, overlay: true },
-      desktopWallpaper: { light: "12345678-1234-1234-1234-123456789abc.png", dark: null }
+      wallpaper: { ...defaultAppearance.wallpaper, light: { ...defaultAppearance.wallpaper.light, desktop: "12345678-1234-1234-1234-123456789abc.png" } }
   }
   assert.deepEqual(parseAppearance(serializeAppearance(custom)), custom)
   assert.throws(() => parseAppearance("{"), /valid Appearance JSON/)

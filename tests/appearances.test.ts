@@ -1,24 +1,23 @@
 import assert from "node:assert/strict"
-import { applyAppearanceUpdate, defaultAppearance, parseAppearance } from "@phreshos/core"
-import { freeName, lookOf, readyAppearances, sameLook } from "../source/client/core/appearances"
+import { applyAppearanceUpdate, defaultAppearance, parseAppearance, systemWallpapers } from "@phreshos/core"
+import { freeName, readyAppearances, sameAppearance } from "../source/client/core/appearances"
 import { test } from "vitest"
 
-test("ready Appearances apply as they are, and leave the wallpapers alone", () => {
-  const owned = { ...defaultAppearance, desktopWallpaper: { light: "a.png", dark: null }, signInWallpaper: { light: null, dark: "b.png" } }
+test("ready Appearances apply whole, with the System's own wallpapers", () => {
+  const owned = { ...defaultAppearance, wallpaper: { ...systemWallpapers, light: { signIn: "a.png", desktop: "b.png" } } }
   for (const ready of readyAppearances) {
-      const applied = parseAppearance(applyAppearanceUpdate(owned, ready.look))
-      assert(sameLook(lookOf(applied), ready.look), ready.id)
-      assert.deepEqual(applied.desktopWallpaper, owned.desktopWallpaper)
-      assert.deepEqual(applied.signInWallpaper, owned.signInWallpaper)
+      const applied = parseAppearance(applyAppearanceUpdate(owned, ready.appearance))
+      assert(sameAppearance(applied, ready.appearance), ready.id)
+      assert.deepEqual(applied.wallpaper, systemWallpapers)
   }
   // Sprout is the System's own default.
-  assert(sameLook(readyAppearances[0]!.look, lookOf(defaultAppearance)))
+  assert(sameAppearance(readyAppearances[0]!.appearance, defaultAppearance))
 })
 
-test("any difference in the look makes the Appearance another one; a wallpaper does not", () => {
-  assert.equal(sameLook(lookOf({ ...defaultAppearance, spacing: 13 }), lookOf(defaultAppearance)), false)
-  assert.equal(sameLook(lookOf({ ...defaultAppearance, taskbar: { ...defaultAppearance.taskbar, size: 61 } }), lookOf(defaultAppearance)), false)
-  assert(sameLook(lookOf({ ...defaultAppearance, desktopWallpaper: { light: "a.png", dark: null } }), lookOf(defaultAppearance)))
+test("any difference makes the Appearance another one, a wallpaper too", () => {
+  assert.equal(sameAppearance({ ...defaultAppearance, spacing: 13 }, defaultAppearance), false)
+  assert.equal(sameAppearance({ ...defaultAppearance, taskbar: { ...defaultAppearance.taskbar, size: 61 } }, defaultAppearance), false)
+  assert.equal(sameAppearance({ ...defaultAppearance, wallpaper: { ...systemWallpapers, dark: { ...systemWallpapers.dark, desktop: "a.png" } } }, defaultAppearance), false)
 })
 
 test("a new name is free", () => {

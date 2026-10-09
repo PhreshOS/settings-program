@@ -3,7 +3,7 @@ import { useSystemAppearance } from "@phreshos/react"
 import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
-import { lookOf, readyAppearances, sameLook, type AppearanceEntry } from "@client/core/appearances"
+import { readyAppearances, sameAppearance, type AppearanceEntry } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { Page, SectionFooter, SectionHeader } from "../../components/section-parts"
@@ -17,8 +17,8 @@ const current = "current"
 const create = "new"
 
 /**
- * The System's Appearance, chosen whole: its colors, shape, material, shadow, motion, and Taskbar.
- * Its wallpapers are left as they are. The ready ones come with Settings, then the owner's own;
+ * The System's Appearance, chosen whole: its colors, shape, material, shadow, motion, Taskbar, and
+ * wallpapers. The ready ones come with Settings, then the owner's own;
  * choosing one applies it at once. When the Appearance in use is none of them, it stands as the
  * current one, to save. A new one starts in Customize, at `customize`; one of the owner's is
  * changed there too, at `customize/<id>`.
@@ -45,13 +45,11 @@ function Gallery() {
         ...readyAppearances.map(entry => ({ ...entry, key: `ready:${entry.id}`, removable: false })),
         ...library.saved.map(entry => ({ ...entry, key: `saved:${entry.id}`, removable: true }))
     ]
-    const look = lookOf(appearance)
-    const inUse = entries.find(entry => sameLook(entry.look, look)) ?? null
+    const inUse = entries.find(entry => sameAppearance(entry.appearance, appearance)) ?? null
 
     const applying = usePromise(async (key: string) => {
         try {
-            // The look alone: what is left out, the wallpapers, stays as it is.
-            await application.updateAppearance(entries.find(entry => entry.key === key)!.look)
+            await application.updateAppearance(entries.find(entry => entry.key === key)!.appearance)
             setProblem(null)
         } catch (error) { setProblem(error instanceof Error ? error.message : "The Appearance could not be applied."); throw error }
     })
@@ -68,7 +66,7 @@ function Gallery() {
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
                     {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
-                        <PreviewPair look={entry.look} />
+                        <PreviewPair look={entry.appearance} />
                         <Flex align="center" gap="small">
                             <Text size="small" style={{ fontWeight: 600, flex: "1 1 auto" }}>{entry.name}</Text>
                             {entry.removable && <>
@@ -100,7 +98,7 @@ function Gallery() {
             </Page>
         </AppLayout.Content>
         <SectionFooter status={problem ?? (inUse ? `${inUse.name} is in use` : "An Appearance of your own is in use")} problem={problem !== null} />
-        <SaveDialog open={saving} onClose={() => setSaving(false)} onSave={name => void library.save(name, look)} />
+        <SaveDialog open={saving} onClose={() => setSaving(false)} onSave={name => void library.save(name, appearance)} />
     </>
 }
 
