@@ -79,7 +79,8 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
 
 /**
  * Every permission the Program declares or holds. A switch allows or denies it: allowing gives what
- * the Program declares, or the whole permission when it declares none.
+ * the Program declares, or the whole permission when it declares none. Reset appears when the value
+ * differs from the declaration, and returns to it.
  */
 function Permissions({ details, busy, run }: Readonly<{ details: ProgramDetails, busy: boolean, run: (operation: () => Promise<unknown>) => void }>) {
     const application = useApplication()
@@ -95,13 +96,23 @@ function Permissions({ details, busy, run }: Readonly<{ details: ProgramDetails,
             const value = permissions[name] ?? null
             const declaration = declared[name]
             return <Row key={name} label={permissionPresentation[name].title} description={describe(value, permissionPresentation[name].description)}>
-                <Switch aria-label={permissionPresentation[name].title} checked={Array.isArray(value)} disabled={busy}
-                    onChange={on => run(() => on
-                        ? application.allow(program, name, declaration === undefined || declaration === true ? true : declaration as never)
-                        : application.deny(program, name))} />
+                <Flex align="center" gap="small">
+                    {!sameScope(value, declaration === undefined ? null : declaration === true ? [] : declaration) &&
+                        <Button size="small" depth="none" disabled={busy} onPress={() => run(() => application.reset(program, name))}>Reset</Button>}
+                    <Switch aria-label={permissionPresentation[name].title} checked={Array.isArray(value)} disabled={busy}
+                        onChange={on => run(() => on
+                            ? application.allow(program, name, declaration === undefined || declaration === true ? true : declaration as never)
+                            : application.deny(program, name))} />
+                </Flex>
             </Row>
         })}
     </Group>
+}
+
+/** Whether two permission values are equal; lists are unordered sets. */
+function sameScope(a: Permission | null, b: Permission | null) {
+    if (!Array.isArray(a) || !Array.isArray(b)) return a === b
+    return a.length === b.length && a.every(value => b.includes(value))
 }
 
 /** What a permission currently gives, in words. */

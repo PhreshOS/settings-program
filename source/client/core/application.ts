@@ -99,6 +99,11 @@ export default class Application {
         return program.permissions.deny(name)
     }
 
+    /** Removes the owner's decision, so the Program's declaration applies again. */
+    public reset(program: Program, name: PermissionName) {
+        return program.permissions.reset(name)
+    }
+
     public pin(program: Program, pinned: boolean) {
         return program.pin(pinned)
     }
