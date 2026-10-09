@@ -45,6 +45,24 @@ export default function Authentication() {
         <AppLayout.Content>
             <ReadView read={read}>{value => <Page wide>
                 <Credentials state={value.state} requirements={value.requirements} onChanged={() => { setProblem(null); read.retry() }} onProblem={setProblem} />
+                <Group title="Connections" description="The browsers connected now, signed in or not.">
+                    <ScrollArea axis="horizontal"><Table aria-label="Connections" size="small">
+                        <Table.Header>
+                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 4}>Browser</Table.Column>
+                            <Table.Column id="connected" width={space.xlarge * 4}>Connected</Table.Column>
+                            <Table.Column id="session" width={space.xlarge * 3.5}>Signed in</Table.Column>
+                            <Table.Column id="admit" width={space.xlarge * 3.5}> </Table.Column>
+                        </Table.Header>
+                        <Table.Body>
+                            {connections.map(({ connection, session }) => <Table.Row key={connection.identity} id={connection.identity} textValue={connection.device ?? connection.identity}>
+                                <Table.Cell>{connection.device ?? "Unknown browser"}</Table.Cell>
+                                <Table.Cell><Text tone="secondary" className="tabular">{ago(connection.connectedAt.getTime())}</Text></Table.Cell>
+                                <Table.Cell><Text tone="secondary">{session ? "Yes" : "No"}</Text></Table.Cell>
+                                <Table.Cell>{!session && <Button size="xsmall" depth="none" color="success" disabled={busy(connection.identity)} onPress={() => run(connection.identity, () => application.signInConnection(connection))}>Sign in</Button>}</Table.Cell>
+                            </Table.Row>)}
+                        </Table.Body>
+                    </Table></ScrollArea>
+                </Group>
                 <Group title="Sessions" description="Each sign-in. It stays valid while a browser uses it, and for a day after the last one leaves.">
                     <ScrollArea axis="horizontal"><Table aria-label="Sessions" size="small">
                         <Table.Header>
@@ -66,24 +84,6 @@ export default function Authentication() {
                                 <Table.Cell><Text tone="secondary" className="tabular">{connections.length ? "Now" : lastActiveAt ? ago(lastActiveAt.getTime()) : "—"}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{connections.length || "None"}</Text></Table.Cell>
                                 <Table.Cell><Button size="xsmall" depth="none" color="danger" disabled={busy(session.identity)} onPress={() => run(session.identity, () => application.signOut(session))}>Sign out</Button></Table.Cell>
-                            </Table.Row>)}
-                        </Table.Body>
-                    </Table></ScrollArea>
-                </Group>
-                <Group title="Connections" description="The browsers connected now, signed in or not.">
-                    <ScrollArea axis="horizontal"><Table aria-label="Connections" size="small">
-                        <Table.Header>
-                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 4}>Browser</Table.Column>
-                            <Table.Column id="connected" width={space.xlarge * 4}>Connected</Table.Column>
-                            <Table.Column id="session" width={space.xlarge * 3.5}>Signed in</Table.Column>
-                            <Table.Column id="admit" width={space.xlarge * 3.5}> </Table.Column>
-                        </Table.Header>
-                        <Table.Body>
-                            {connections.map(({ connection, session }) => <Table.Row key={connection.identity} id={connection.identity} textValue={connection.device ?? connection.identity}>
-                                <Table.Cell>{connection.device ?? "Unknown browser"}</Table.Cell>
-                                <Table.Cell><Text tone="secondary" className="tabular">{ago(connection.connectedAt.getTime())}</Text></Table.Cell>
-                                <Table.Cell><Text tone="secondary">{session ? "Yes" : "No"}</Text></Table.Cell>
-                                <Table.Cell>{!session && <Button size="xsmall" depth="none" color="success" disabled={busy(connection.identity)} onPress={() => run(connection.identity, () => application.signInConnection(connection))}>Sign in</Button>}</Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
                     </Table></ScrollArea>
