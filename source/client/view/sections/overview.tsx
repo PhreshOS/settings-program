@@ -26,7 +26,7 @@ export default function Overview() {
         <SectionHeader title="Overview" />
         <AppLayout.Content>
             <ReadView read={read}>{([about, glance]) => <Page>
-                <Surface depth="flat" color="primary:subtle" style={{ display: "flex", alignItems: "center", gap: space.large, padding: space.large }}>
+                <Surface depth="flat" color="default" style={{ display: "flex", alignItems: "center", gap: space.large, padding: space.large }}>
                     <Icon of={application} size={space.xlarge * 3} />
                     <Flex direction="column" gap="xsmall" style={{ flex: "1 1 auto", minWidth: 0 }}>
                         <Heading level={2} size="xlarge">{about.name}</Heading>
@@ -35,7 +35,7 @@ export default function Overview() {
                     </Flex>
                 </Surface>
 
-                <GridList aria-label="At a glance" selectionMode="none" restColor="primary:subtle" itemWidth={space.xlarge * 5} stretch
+                <GridList aria-label="At a glance" selectionMode="none" itemWidth={space.xlarge * 5} stretch
                     // Running Processes are listed with their Programs, Sessions in Authentication.
                     onAction={key => frame.go(key === "running" ? "programs" : key === "sessions" ? "authentication" : String(key))}>
                     <Count id="programs" icon={LayoutGrid} value={glance.programs} label={glance.programs === 1 ? "Program installed" : "Programs installed"} />
