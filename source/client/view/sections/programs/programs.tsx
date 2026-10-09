@@ -73,6 +73,6 @@ function granted(permissions: ProgramDetails["permissions"]) {
     return names.includes("all") ? "all" : names.length ? names.join(", ") : "—"
 }
 
-export function count(amount: number, noun: string) {
-    return `${amount} ${noun}${amount === 1 ? "" : "s"}`
+export function count(amount: number, noun: string, plural = `${noun}s`) {
+    return `${amount} ${amount === 1 ? noun : plural}`
 }

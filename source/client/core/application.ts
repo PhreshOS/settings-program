@@ -1,7 +1,7 @@
 import { desktop, system } from "@phreshos/client"
 import type {
-    AppearanceUpdate, AuthenticationCredentials, Connection, DesktopPreferencesUpdate, IconSize, Launch, PermissionName, PermissionRequestInput,
-    Permissions, Program, Session, SystemLogRecord
+    AppearanceUpdate, AuthenticationCredentials, Cleanup, ClientService, Connection, DesktopPreferencesUpdate, Endpoint, IconSize, Launch, PermissionName,
+    PermissionRequestInput, Permissions, Process, Program, ProgramLogRecord, ServerService, ServiceAddress, ServiceProgramMetadata, Session, SystemLogRecord
 } from "@phreshos/core"
 
 /** An installed Program with what Settings shows and changes about it. */
@@ -18,6 +18,25 @@ export type SessionDetails = Readonly<{
     connections: readonly Connection[]
     /** Now while a browser uses it; otherwise when the last one left. */
     lastActiveAt: Date | null
+}>
+
+/** One side of a Process as it is now; `null` when its Program does not declare that side. */
+export type EndpointState = Readonly<{ running: boolean, service: boolean }> | null
+
+/** A live Process with its Program and the state of its two sides. */
+export type ProcessDetails = Readonly<{
+    process: Process
+    program: Program
+    server: EndpointState
+    client: EndpointState
+}>
+
+/** A ready Service: its address, its Program, and the identity of the Process behind it. */
+export type ServiceDetails = Readonly<{
+    service: ServerService | ClientService
+    address: ServiceAddress
+    program: ServiceProgramMetadata
+    process: string | null
 }>
 
 /** Owns Settings operations and reads, and coordinates them with their System authority. */
@@ -181,6 +200,101 @@ export default class Application {
     public async connections() {
         const connections = await system.authentication.connections()
         return Promise.all(connections.map(async connection => ({ connection, session: await connection.session() })))
+    }
+
+    /** Every live Process, by Program name and then by start. */
+    public async processes(): Promise<ProcessDetails[]> {
+        const details = await Promise.all((await system.process.list()).map(process => this.processDetails(process)))
+        return details.sort((first, second) => first.program.name.localeCompare(second.program.name)
+            || first.process.startedAt.getTime() - second.process.startedAt.getTime())
+    }
+
+    /** One live Process with where it came from, or `null` once it has ended. */
+    public async process(identity: string) {
+        const process = await system.process.find(identity)
+        if (!process) return null
+        const [details, parent, options, installed] = await Promise.all([
+            this.processDetails(process), process.parent(), process.options(), process.program().installed()
+        ])
+        // Installed: its Program has a page under Programs; otherwise it runs from a project.
+        return { ...details, parent, options, installed }
+    }
+
+    private async processDetails(process: Process): Promise<ProcessDetails> {
+        const program = process.program()
+        const state = async (declared: boolean, endpoint: Endpoint): Promise<EndpointState> => declared
+            ? { running: await endpoint.running(), service: await endpoint.isService() }
+            : null
+        const [server, client] = await Promise.all([state(program.server !== null, process.server), state(program.client !== null, process.client)])
+        return { process, program, server, client }
+    }
+
+    /** Calls `change` when a Process starts or ends, or one of its sides starts or stops. */
+    public followProcesses(change: () => void) {
+        const sides = new Map<string, Cleanup>()
+        let following = true
+        const watch = (process: Process) => {
+            if (!following || sides.has(process.identity)) return
+            const program = process.program()
+            const endpoints = [program.server && process.server, program.client && process.client].filter(endpoint => !!endpoint)
+            const stops = endpoints.flatMap(endpoint => (["start", "stop"] as const).map(event => endpoint.lifecycle.subscribe(event, () => change())))
+            sides.set(process.identity, () => stops.forEach(stop => stop()))
+        }
+        const stops = [
+            system.process.subscribe("create", process => { watch(process); change() }),
+            system.process.subscribe("exit", ({ process }) => {
+                sides.get(process.identity)?.()
+                sides.delete(process.identity)
+                change()
+            })
+        ]
+        void system.process.list().then(processes => processes.forEach(watch), () => undefined)
+        return () => {
+            following = false
+            stops.forEach(stop => stop())
+            sides.forEach(stop => stop())
+        }
+    }
+
+    public endProcess(process: Process) {
+        return process.exit()
+    }
+
+    /** Starts one side of a Process as its Program declares it, such as a Window that was closed. */
+    public startEndpoint(process: Process, side: "server" | "client") {
+        return process[side].start()
+    }
+
+    public stopEndpoint(process: Process, side: "server" | "client") {
+        return process[side].stop()
+    }
+
+    /** The newest lines one Process printed, newest first. */
+    public output(process: Process, limit: number) {
+        return process.program().logs.query<ProgramLogRecord>("SELECT * FROM logs WHERE process = ? ORDER BY createdAt DESC LIMIT ?", [process.identity, limit])
+    }
+
+    /** Calls `record` with each line the Process prints from now on. */
+    public followOutput(process: Process, record: (record: ProgramLogRecord) => void) {
+        return process.program().logs.subscribe("log", line => { if (line.process === process.identity) record(line) })
+    }
+
+    /** Every ready Service, by Program name and then by name. */
+    public async services(): Promise<ServiceDetails[]> {
+        const [services, processes] = await Promise.all([system.service.list(), system.process.list()])
+        const details = await Promise.all(services.map(async service => {
+            const address = service.address()
+            const behind = processes.find(process => process.program().identity === address.program && process.name === address.process)
+            return { service, address, program: await service.programMetadata(), process: behind?.identity ?? null }
+        }))
+        return details.sort((first, second) => first.program.name.localeCompare(second.program.name)
+            || first.address.process.localeCompare(second.address.process)
+            || first.address.endpoint.localeCompare(second.address.endpoint))
+    }
+
+    public followServices(change: () => void) {
+        const stops = (["available", "unavailable"] as const).map(event => system.service.subscribe(event, () => change()))
+        return () => stops.forEach(stop => stop())
     }
 
     /** Signs in a connected browser without a password, such as one the owner approves from here. */
