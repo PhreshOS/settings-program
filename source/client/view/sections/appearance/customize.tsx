@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { appearanceLimits, systemWallpapers, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpaper, type TaskbarPosition, type Theme } from "@phreshos/core"
+import { appearanceLimits, systemWallpapers, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
 import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, Grid, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
@@ -27,7 +27,7 @@ const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
     opacity: "Opacity", blur: "Blur", x: "Across", y: "Down", spread: "Spread"
 }
 
-const wallpaperNames: Readonly<Record<keyof AppearanceWallpaper, string>> = { signIn: "Sign-in", desktop: "Desktop" }
+const wallpaperNames: Readonly<Record<keyof AppearanceWallpapers, string>> = { signIn: "Sign-in", desktop: "Desktop" }
 
 /**
  * The Appearance in use, changed in place: every change applies to every Desktop a moment after it
@@ -62,18 +62,18 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
         }, 250)
     }
 
-    const themed = <Key extends "colors" | "material" | "shadow" | "wallpaper">(key: Key, mode: Theme, value: Partial<NonNullable<Appearance[Key]["light"]>>) =>
+    const themed = <Key extends "colors" | "material" | "shadow" | "wallpapers">(key: Key, mode: Theme, value: Partial<NonNullable<Appearance[Key]["light"]>>) =>
         change({ ...draft, [key]: { ...draft[key], [mode]: { ...(draft[key][mode] ?? draft[key].light), ...value } } })
 
     const taskbar = draft.taskbar
 
     // The file becomes an upload first; the System refuses a wallpaper it cannot show.
-    async function chooseWallpaper(mode: Theme, place: keyof AppearanceWallpaper, file: File | undefined) {
+    async function chooseWallpaper(mode: Theme, place: keyof AppearanceWallpapers, file: File | undefined) {
         if (!file) return
         if (file.size > wallpaperLimit) return setProblem("A wallpaper cannot exceed 50 MB.")
         setUploading(`${mode}:${place}`)
         try {
-            themed("wallpaper", mode, { [place]: await application.upload(file) })
+            themed("wallpapers", mode, { [place]: await application.upload(file) })
         } catch (error) {
             setProblem(error instanceof Error ? error.message : "The file could not be uploaded.")
         } finally {
@@ -123,16 +123,16 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                             </Row>
                         </Group>
                         <Group title="Wallpapers" description="An image, a video, or an offline HTML page, up to 50 MB." aside={<Columns />}>
-                            {(Object.keys(wallpaperNames) as (keyof AppearanceWallpaper)[]).map(place => <Row key={place} label={wallpaperNames[place]}>
+                            {(Object.keys(wallpaperNames) as (keyof AppearanceWallpapers)[]).map(place => <Row key={place} label={wallpaperNames[place]}>
                                 {modes.map(mode => <FileTrigger key={mode} accept={wallpaperFiles} onSelect={files => void chooseWallpaper(mode, place, files[0])}>
                                     <Button size="small" aria-label={`${wallpaperNames[place]} wallpaper, ${mode}`} pending={uploading === `${mode}:${place}`}
                                         style={{ width: "6.5rem", height: "3.75rem", padding: 0, overflow: "hidden" }}>
-                                        <Thumbnail file={draft.wallpaper[mode][place]} />
+                                        <Thumbnail file={draft.wallpapers[mode][place]} />
                                     </Button>
                                 </FileTrigger>)}
                             </Row>)}
                             <Row label="The System's own" description="Puts back the wallpapers this release comes with.">
-                                <Button size="small" disabled={sameAppearance(draft.wallpaper, systemWallpapers)} onPress={() => change({ ...draft, wallpaper: systemWallpapers })}>Use</Button>
+                                <Button size="small" disabled={sameAppearance(draft.wallpapers, systemWallpapers)} onPress={() => change({ ...draft, wallpapers: systemWallpapers })}>Use</Button>
                             </Row>
                         </Group>
                         <Group title="Taskbar">

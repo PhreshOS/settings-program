@@ -8,7 +8,7 @@ export default function Preview({ look, mode, height = "4rem" }: Readonly<{ look
     const material = look.material[mode] ?? look.material.light
     const radius = look.radius / 2
     const gap = look.spacing / 3
-    const wallpaper = wallpaperSource(look.wallpaper[mode].desktop)
+    const wallpaper = wallpaperSource(look.wallpapers[mode].desktop)
 
     return <div aria-hidden="true" style={{ position: "relative", height, background: wallpaper.kind === "image" ? `center / cover url("${wallpaper.url}") ${colors.background}` : colors.background, overflow: "hidden" }}>
         {wallpaper.kind === "video" && <video src={wallpaper.url} muted playsInline preload="metadata" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />}

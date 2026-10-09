@@ -4,11 +4,11 @@ import { freeName, readyAppearances, sameAppearance } from "../source/client/cor
 import { test } from "vitest"
 
 test("ready Appearances apply whole, with the System's own wallpapers", () => {
-  const owned = { ...defaultAppearance, wallpaper: { ...systemWallpapers, light: { signIn: "a.png", desktop: "b.png" } } }
+  const owned = { ...defaultAppearance, wallpapers: { ...systemWallpapers, light: { signIn: "a.png", desktop: "b.png" } } }
   for (const ready of readyAppearances) {
       const applied = parseAppearance(applyAppearanceUpdate(owned, ready.appearance))
       assert(sameAppearance(applied, ready.appearance), ready.id)
-      assert.deepEqual(applied.wallpaper, systemWallpapers)
+      assert.deepEqual(applied.wallpapers, systemWallpapers)
   }
   // Sprout is the System's own default.
   assert(sameAppearance(readyAppearances[0]!.appearance, defaultAppearance))
@@ -17,7 +17,7 @@ test("ready Appearances apply whole, with the System's own wallpapers", () => {
 test("any difference makes the Appearance another one, a wallpaper too", () => {
   assert.equal(sameAppearance({ ...defaultAppearance, spacing: 13 }, defaultAppearance), false)
   assert.equal(sameAppearance({ ...defaultAppearance, taskbar: { ...defaultAppearance.taskbar, size: 61 } }, defaultAppearance), false)
-  assert.equal(sameAppearance({ ...defaultAppearance, wallpaper: { ...systemWallpapers, dark: { ...systemWallpapers.dark, desktop: "a.png" } } }, defaultAppearance), false)
+  assert.equal(sameAppearance({ ...defaultAppearance, wallpapers: { ...systemWallpapers, dark: { ...systemWallpapers.dark, desktop: "a.png" } } }, defaultAppearance), false)
 })
 
 test("a new name is free", () => {
