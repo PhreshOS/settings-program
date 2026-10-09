@@ -8,7 +8,9 @@ import { useApplication } from "../../application"
 export function Side({ state }: Readonly<{ state: EndpointState }>) {
     if (state === null) return <Text tone="secondary">—</Text>
     if (!state.running) return <Badge size="xsmall">Stopped</Badge>
-    return <Badge size="xsmall" color="success" dot>{state.service ? "Service" : "Running"}</Badge>
+    return state.service
+        ? <Badge size="xsmall" color="secondary" dot>Service</Badge>
+        : <Badge size="xsmall" color="success" dot>Running</Badge>
 }
 
 /** Ends a Process after the owner confirms, from its row or from its own page. */
