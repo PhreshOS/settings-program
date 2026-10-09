@@ -1,16 +1,15 @@
 import { useState } from "react"
-import type { Appearance as AppearanceDocument } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
 import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
-import { readyAppearances, readyDocument, sameAppearance, type ReadyAppearance } from "@client/core/appearances"
+import { lookOf, readyAppearances, sameLook, type AppearanceEntry } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { Page, SectionFooter, SectionHeader } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { PreviewPair } from "./preview"
-import { readyWallpaperFiles, useLibrary } from "./library"
+import { useLibrary } from "./library"
 import SaveDialog from "./save-dialog"
 import Customize from "./customize"
 
@@ -18,20 +17,20 @@ const current = "current"
 const create = "new"
 
 /**
- * The System's Appearance, chosen whole: colors and shape, wallpaper, and Taskbar together. The
- * ready ones come with Settings, then the owner's own; choosing one applies it at once. When the
- * Appearance in use is none of them, it stands as the current one, to save. A new one starts in
- * Customize, at `customize`.
+ * The System's Appearance, chosen whole: its colors, shape, surfaces, motion, and Taskbar together.
+ * Its wallpapers are left as they are. The ready ones come with Settings, then the owner's own;
+ * choosing one applies it at once. When the Appearance in use is none of them, it stands as the
+ * current one, to save. A new one starts in Customize, at `customize`.
  */
 export default function Appearance({ rest }: Readonly<{ rest: string | null }>) {
     return rest === "customize" ? <Customize /> : <Gallery />
 }
 
-type Entry = Readonly<{ key: string, name: string, description: string, document: AppearanceDocument | null, look: AppearanceDocument | ReadyAppearance["look"], wallpapers?: Readonly<{ light: string | null, dark: string | null }> }>
+type Entry = AppearanceEntry & Readonly<{ key: string, removable: boolean }>
 
 function Gallery() {
     const application = useApplication()
-    const library = useLibrary(application)
+    const library = useLibrary()
     const appearance = useSystemAppearance()
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
@@ -39,27 +38,20 @@ function Gallery() {
     const [saving, setSaving] = useState(false)
     useArrival(library.loaded)
 
-    const ready: Entry[] = readyAppearances.map(entry => ({
-        key: `ready:${entry.id}`, name: entry.name, description: entry.description, document: readyDocument(entry, library.uploaded), look: entry.look,
-        wallpapers: entry.wallpaper ? readyWallpaperFiles[entry.wallpaper] : undefined
-    }))
-    const saved: Entry[] = library.saved.map(entry => ({ key: `saved:${entry.id}`, name: entry.name, description: "Yours", document: entry.appearance, look: entry.appearance }))
-    const inUse = [...ready, ...saved].find(entry => entry.document !== null && sameAppearance(entry.document, appearance)) ?? null
+    const entries: Entry[] = [
+        ...readyAppearances.map(entry => ({ ...entry, key: `ready:${entry.id}`, removable: false })),
+        ...library.saved.map(entry => ({ ...entry, key: `saved:${entry.id}`, removable: true }))
+    ]
+    const look = lookOf(appearance)
+    const inUse = entries.find(entry => sameLook(entry.look, look)) ?? null
 
     const applying = usePromise(async (key: string) => {
         try {
-            await application.updateAppearance(await documentOf(key))
+            // The look alone: what is left out, the wallpapers, stays as it is.
+            await application.updateAppearance(entries.find(entry => entry.key === key)!.look)
             setProblem(null)
         } catch (error) { setProblem(error instanceof Error ? error.message : "The Appearance could not be applied."); throw error }
     })
-
-    async function documentOf(key: string): Promise<AppearanceDocument> {
-        const [kind, id] = key.split(":") as [string, string]
-        if (kind === "saved") return library.saved.find(entry => entry.id === id)!.appearance
-        const entry = readyAppearances.find(item => item.id === id)!
-        const pair = entry.wallpaper === null ? { light: null, dark: null } : await library.wallpaper(entry.wallpaper)
-        return { ...entry.look, desktopWallpaper: pair, signInWallpaper: pair }
-    }
 
     return <>
         <SectionHeader title="Appearance">
@@ -72,11 +64,11 @@ function Gallery() {
                         if (key === create) go("appearance/customize")
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
-                    {[...ready, ...saved].map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
-                        <PreviewPair look={entry.look} wallpapers={entry.wallpapers} />
+                    {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
+                        <PreviewPair look={entry.look} />
                         <Flex align="center" gap="small">
                             <Text size="small" style={{ fontWeight: 600, flex: "1 1 auto" }}>{entry.name}</Text>
-                            {entry.key.startsWith("saved:") && <Remove name={entry.name} onRemove={() => void library.remove(entry.key.slice("saved:".length))} />}
+                            {entry.removable && <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />}
                         </Flex>
                         <Text size="xsmall" tone="secondary">{entry.description}</Text>
                     </GridList.Item>)}
@@ -102,7 +94,7 @@ function Gallery() {
             </Page>
         </AppLayout.Content>
         <SectionFooter status={problem ?? (inUse ? `${inUse.name} is in use` : "An Appearance of your own is in use")} problem={problem !== null} />
-        <SaveDialog open={saving} onClose={() => setSaving(false)} onSave={name => void library.save(name, appearance)} />
+        <SaveDialog open={saving} onClose={() => setSaving(false)} onSave={name => void library.save(name, look)} />
     </>
 }
 

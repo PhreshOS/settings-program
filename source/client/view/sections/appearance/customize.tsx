@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react"
-import { appearanceLimits, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type TaskbarPosition, type Theme } from "@phreshos/core"
+import { appearanceLimits, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
-import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, Grid, SegmentedControl, Select, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
-import { ImageUp, PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
-import type { ReadyWallpaper } from "@client/core/appearances"
+import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, Flex, Grid, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
+import { lookOf, type Look } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { Group, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
 import Preview from "./preview"
-import { readyWallpaperFiles, useLibrary } from "./library"
+import { useLibrary } from "./library"
 import SaveDialog from "./save-dialog"
 
 const modes: readonly Theme[] = ["light", "dark"]
@@ -26,21 +26,17 @@ const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
     opacity: "Shadow", blur: "Shadow blur", x: "Shadow across", y: "Shadow down", spread: "Shadow spread"
 }
 
-// Images, videos, and offline HTML documents can all be a wallpaper.
-const accept = ["image/*", "video/mp4", "video/ogg", "video/webm", "text/html"]
-const releaseWallpaper = "release"
-const ownWallpaper = "own"
-
 /**
  * The Appearance in use, changed in place: every change applies to every Desktop a moment after it
  * settles, so dragging a slider sends where it ends. Light and dark stand side by side, so there is
- * nothing to switch between. Save keeps the result among the owner's Appearances.
+ * nothing to switch between. Its wallpapers are left as they are. Save keeps the result among the
+ * owner's Appearances.
  */
 export default function Customize() {
     useArrival(true)
     const application = useApplication()
-    const library = useLibrary(application)
-    const authoritative = useSystemAppearance()
+    const library = useLibrary()
+    const authoritative = lookOf(useSystemAppearance())
     const space = useScale(useAppearance().spacing)
     const [draft, setDraft] = useState(authoritative)
     const [problem, setProblem] = useState<string | null>(null)
@@ -48,10 +44,12 @@ export default function Customize() {
     const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // What the System holds replaces the draft, unless a change of this page is still on its way.
-    useEffect(() => { if (pending.current === null) setDraft(authoritative) }, [authoritative])
+    const held = JSON.stringify(authoritative)
+    useEffect(() => { if (pending.current === null) setDraft(JSON.parse(held) as Look) }, [held])
     useEffect(() => () => { if (pending.current) clearTimeout(pending.current) }, [])
 
-    function change(next: Appearance) {
+    // The look alone is sent: what is left out, the wallpapers, stays as it is.
+    function change(next: Look) {
         setDraft(next)
         if (pending.current) clearTimeout(pending.current)
         pending.current = setTimeout(() => {
@@ -60,29 +58,8 @@ export default function Customize() {
         }, 250)
     }
 
-    const themed = <Key extends "colors" | "material" | "shadow">(key: Key, mode: Theme, value: Partial<NonNullable<Appearance[Key]["light"]>>) =>
+    const themed = <Key extends "colors" | "material" | "shadow">(key: Key, mode: Theme, value: Partial<NonNullable<Look[Key]["light"]>>) =>
         change({ ...draft, [key]: { ...draft[key], [mode]: { ...(draft[key][mode] ?? draft[key].light), ...value } } })
-
-    function wallpaper(mode: Theme, address: string | null) {
-        change({ ...draft, desktopWallpaper: { ...draft.desktopWallpaper, [mode]: address }, signInWallpaper: { ...draft.signInWallpaper, [mode]: address } })
-    }
-
-    async function chooseWallpaper(mode: Theme, choice: string) {
-        if (choice === releaseWallpaper) return wallpaper(mode, null)
-        if (choice === ownWallpaper) return
-        wallpaper(mode, (await library.wallpaper(choice as ReadyWallpaper))[mode])
-    }
-
-    async function ownFile(mode: Theme, files: File[]) {
-        const [file] = files
-        if (file) wallpaper(mode, await application.upload(file))
-    }
-
-    function wallpaperChoice(mode: Theme) {
-        const address = draft.desktopWallpaper[mode] ?? null
-        if (address === null) return releaseWallpaper
-        return (Object.keys(readyWallpaperFiles) as ReadyWallpaper[]).find(id => library.uploaded[id]?.[mode] === address) ?? ownWallpaper
-    }
 
     const taskbar = draft.taskbar
 
@@ -105,21 +82,6 @@ export default function Customize() {
                                 {modes.map(mode => <Swatch key={mode} label={`${colorNames[role]}, ${mode}`} value={(draft.colors[mode] ?? draft.colors.light)[role]}
                                     onChange={value => themed("colors", mode, { [role]: value })} />)}
                             </Row>)}
-                        </Group>
-                        <Group title="Wallpaper" description="Behind the windows and the sign-in screen." aside={<Columns />}>
-                            <Row label="Picture">
-                                {modes.map(mode => <Select key={mode} aria-label={`Wallpaper, ${mode}`} size="small" value={wallpaperChoice(mode)} style={{ width: "6.5rem" }}
-                                    onChange={value => { if (value) void chooseWallpaper(mode, String(value)) }}>
-                                    <Select.Item id={releaseWallpaper}>Sprout</Select.Item>
-                                    {(Object.keys(readyWallpaperFiles) as ReadyWallpaper[]).map(id => <Select.Item key={id} id={id}>{readyWallpaperFiles[id].name}</Select.Item>)}
-                                    {wallpaperChoice(mode) === ownWallpaper && <Select.Item id={ownWallpaper}>Your own</Select.Item>}
-                                </Select>)}
-                            </Row>
-                            <Row label="Your own file">
-                                {modes.map(mode => <FileTrigger key={mode} accept={accept} onSelect={files => void ownFile(mode, files)}>
-                                    <Button size="small" style={{ width: "6.5rem" }}><ImageUp />Choose</Button>
-                                </FileTrigger>)}
-                            </Row>
                         </Group>
                     </Flex>
                     <Flex direction="column" gap="large">

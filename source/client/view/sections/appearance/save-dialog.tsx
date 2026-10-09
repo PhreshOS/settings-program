@@ -10,7 +10,7 @@ export default function SaveDialog({ open, onClose, onSave }: Readonly<{ open: b
             <Dialog.Content>
                 <Dialog.Header>
                     <Dialog.Title>Save this Appearance</Dialog.Title>
-                    <Dialog.Description>Its colors and shape, its wallpaper, and its Taskbar, kept together to choose again.</Dialog.Description>
+                    <Dialog.Description>Its colors, shape, surfaces, motion, and Taskbar, kept together to choose again.</Dialog.Description>
                 </Dialog.Header>
                 <Dialog.Body>
                     <Input label="Name" value={name} autoFocus onChange={setName} />
