@@ -72,7 +72,7 @@ export default function Authentication() {
                                 <Table.Cell><Text tone="secondary" className="tabular">{session.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{connections.length ? "Now" : lastActiveAt ? ago(lastActiveAt.getTime()) : "—"}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{connections.length || "None"}</Text></Table.Cell>
-                                <Table.Cell><Button size="xsmall" disabled={ending.isPending} onPress={() => void ending.safeExecute(session)}>Sign out</Button></Table.Cell>
+                                <Table.Cell><Button size="xsmall" depth="none" color="danger" disabled={ending.isPending} onPress={() => void ending.safeExecute(session)}>Sign out</Button></Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
                     </Table>
