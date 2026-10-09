@@ -17,7 +17,7 @@ const current = "current"
 const create = "new"
 
 /**
- * The System's Appearance, chosen whole: its colors, shape, surfaces, motion, and Taskbar together.
+ * The System's Appearance, chosen whole: its colors, shape, material, shadow, motion, and Taskbar.
  * Its wallpapers are left as they are. The ready ones come with Settings, then the owner's own;
  * choosing one applies it at once. When the Appearance in use is none of them, it stands as the
  * current one, to save. A new one starts in Customize, at `customize`; one of the owner's is

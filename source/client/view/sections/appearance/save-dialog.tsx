@@ -11,7 +11,7 @@ export default function SaveDialog({ open, name: initial = "My appearance", onCl
             <Dialog.Content>
                 <Dialog.Header>
                     <Dialog.Title>Save this Appearance</Dialog.Title>
-                    <Dialog.Description>Its colors, shape, surfaces, motion, and Taskbar, kept together to choose again.</Dialog.Description>
+                    <Dialog.Description>Its colors, shape, material, shadow, motion, and Taskbar, kept together to choose again.</Dialog.Description>
                 </Dialog.Header>
                 <Dialog.Body>
                     <Input label="Name" value={name} autoFocus onChange={setName} />
