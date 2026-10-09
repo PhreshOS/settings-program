@@ -4,7 +4,7 @@ import { AppLayout, Badge, Button, Flex, Grid, GridList, Heading, Surface, Text,
 import { Activity, ChevronRight, LayoutGrid, Power, Users, type LucideIcon } from "@phreshos/react-ui/icons"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
-import Icon from "../components/icon"
+import { decodedIcon, DecodedIcon } from "../components/icon"
 import { Group, Page, SectionFooter, SectionHeader } from "../components/section-parts"
 import { useFrame } from "../settings/frame"
 import { DesktopPreferences, useDesktopUpdate } from "./display"
@@ -19,15 +19,24 @@ export default function Overview() {
     const application = useApplication()
     const frame = useFrame()
     const space = useScale(useAppearance().spacing)
-    const read = useRead(() => Promise.all([application.about(), application.glance()]), [], change => application.followGlance(change))
+    const logo = space.xlarge * 3
+    // The System's picture is part of what the page shows first, so the window waits for it too; it is
+    // read once, apart from the counts that change with every record.
+    const picture = useRead(() => decodedIcon(application, logo), [logo])
+    const facts = useRead(() => Promise.all([application.about(), application.glance()]), [], change => application.followGlance(change))
+    const read = {
+        value: facts.value && picture.value !== undefined ? [...facts.value, picture.value] as const : undefined,
+        exception: facts.exception ?? picture.exception,
+        retry: () => { facts.retry(); picture.retry() }
+    }
     const updating = useDesktopUpdate()
 
     return <>
         <SectionHeader title="Overview" />
         <AppLayout.Content>
-            <ReadView read={read}>{([about, glance]) => <Page>
+            <ReadView read={read}>{([about, glance, address]) => <Page>
                 <Surface depth="flat" color="default" style={{ display: "flex", alignItems: "center", gap: space.large, padding: space.large }}>
-                    <Icon of={application} size={space.xlarge * 3} />
+                    <DecodedIcon address={address} size={logo} />
                     <Flex direction="column" gap="xsmall" style={{ flex: "1 1 auto", minWidth: 0 }}>
                         <Heading level={2} size="xlarge">{about.name}</Heading>
                         <Text tone="secondary" className="tabular">Version {about.version} · Release {about.release.name}</Text>
