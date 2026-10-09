@@ -1,14 +1,17 @@
-import type { Appearance, Theme } from "@phreshos/core"
+import type { Appearance, Theme, ThemedValue } from "@phreshos/core"
 import { wallpaperSource } from "./wallpaper"
 
-/** A small Desktop in an Appearance, in light or dark: its wallpaper, one window, and the primary color on it. */
-export default function Preview({ look, mode, height = "4rem" }: Readonly<{ look: Appearance, mode: Theme, height?: string }>) {
+/**
+ * A small Desktop in an Appearance, in light or dark: its wallpaper, one window, and the primary
+ * color on it. `pictures` are the files Settings carries for a ready Appearance, shown as they are.
+ */
+export default function Preview({ look, mode, height = "4rem", pictures }: Readonly<{ look: Appearance, mode: Theme, height?: string, pictures?: ThemedValue<string> }>) {
     const colors = look.colors[mode] ?? look.colors.light
     const shadow = look.shadow[mode] ?? look.shadow.light
     const material = look.material[mode] ?? look.material.light
     const radius = look.radius / 2
     const gap = look.spacing / 3
-    const wallpaper = wallpaperSource(look.wallpapers[mode].desktop)
+    const wallpaper = pictures ? { url: pictures[mode], kind: "image" } : wallpaperSource(look.wallpapers[mode].desktop)
 
     return <div aria-hidden="true" style={{ position: "relative", height, background: wallpaper.kind === "image" ? `center / cover url("${wallpaper.url}") ${colors.background}` : colors.background, overflow: "hidden" }}>
         {wallpaper.kind === "video" && <video src={wallpaper.url} muted playsInline preload="metadata" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />}
@@ -29,9 +32,9 @@ export default function Preview({ look, mode, height = "4rem" }: Readonly<{ look
 }
 
 /** An Appearance in light and dark, side by side. */
-export function PreviewPair({ look, height }: Readonly<{ look: Appearance, height?: string }>) {
+export function PreviewPair({ look, height, pictures }: Readonly<{ look: Appearance, height?: string, pictures?: ThemedValue<string> }>) {
     return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderRadius: "0.5rem", overflow: "hidden" }}>
-        <Preview look={look} mode="light" height={height} />
-        <Preview look={look} mode="dark" height={height} />
+        <Preview look={look} mode="light" height={height} pictures={pictures} />
+        <Preview look={look} mode="dark" height={height} pictures={pictures} />
     </div>
 }

@@ -19,6 +19,8 @@ export default defineConfig({
         strictPort: true
     },
     build: {
+        // Pictures such as the wallpapers stay files of their own, fetched when they are needed.
+        assetsInlineLimit: 0,
         emptyOutDir: true,
         outDir: resolve(import.meta.dirname, "dist/client")
     }

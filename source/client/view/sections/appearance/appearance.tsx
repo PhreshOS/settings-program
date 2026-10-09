@@ -4,6 +4,7 @@ import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, us
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { readyAppearances, sameAppearance, type AppearanceEntry } from "@client/core/appearances"
+import { usePictures } from "./pictures"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { Page, SectionFooter, SectionHeader } from "../../components/section-parts"
@@ -39,17 +40,18 @@ function Gallery() {
     const space = useScale(useAppearance().spacing)
     const [problem, setProblem] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
-    useArrival(library.loaded)
+    const pictures = usePictures()
+    useArrival(library.loaded && pictures.loaded)
 
     const entries: Entry[] = [
         ...readyAppearances.map(entry => ({ ...entry, key: `ready:${entry.id}`, removable: false })),
         ...library.saved.map(entry => ({ ...entry, key: `saved:${entry.id}`, removable: true }))
     ]
-    const inUse = entries.find(entry => sameAppearance(entry.appearance, appearance)) ?? null
+    const inUse = entries.find(entry => sameAppearance(pictures.known(entry), appearance)) ?? null
 
     const applying = usePromise(async (key: string) => {
         try {
-            await application.updateAppearance(entries.find(entry => entry.key === key)!.appearance)
+            await application.updateAppearance(await pictures.resolve(entries.find(entry => entry.key === key)!))
             setProblem(null)
         } catch (error) { setProblem(error instanceof Error ? error.message : "The Appearance could not be applied."); throw error }
     })
@@ -66,7 +68,7 @@ function Gallery() {
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
                     {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
-                        <PreviewPair look={entry.appearance} />
+                        <PreviewPair look={entry.appearance} pictures={entry.pictures} />
                         <Flex align="center" gap="small">
                             <Text size="small" style={{ fontWeight: 600, flex: "1 1 auto" }}>{entry.name}</Text>
                             {entry.removable && <>

@@ -72,6 +72,11 @@ export default class Application {
         return (await system.uploads.write(file)).file
     }
 
+    /** Whether an upload is still there. */
+    public async uploadExists(file: string) {
+        return await system.uploads.stat(file) !== null
+    }
+
     /** Every installed Program, by name. */
     public async programs(): Promise<ProgramDetails[]> {
         const programs = await system.program.list({ installed: true })

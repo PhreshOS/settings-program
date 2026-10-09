@@ -3,9 +3,9 @@ import { applyAppearanceUpdate, defaultAppearance, parseAppearance, systemWallpa
 import { freeName, readyAppearances, sameAppearance } from "../source/client/core/appearances"
 import { test } from "vitest"
 
-test("ready Appearances apply whole, with the System's own wallpapers", () => {
+test("ready Appearances apply whole; those without pictures show the System's own wallpapers", () => {
   const owned = { ...defaultAppearance, wallpapers: { ...systemWallpapers, light: { signIn: "a.png", desktop: "b.png" } } }
-  for (const ready of readyAppearances) {
+  for (const ready of readyAppearances.filter(entry => !entry.pictures)) {
       const applied = parseAppearance(applyAppearanceUpdate(owned, ready.appearance))
       assert(sameAppearance(applied, ready.appearance), ready.id)
       assert.deepEqual(applied.wallpapers, systemWallpapers)
@@ -23,4 +23,14 @@ test("any difference makes the Appearance another one, a wallpaper too", () => {
 test("a new name is free", () => {
   assert.equal(freeName("My appearance", []), "My appearance")
   assert.equal(freeName("My appearance", ["My appearance", "My appearance 2"]), "My appearance 3")
+})
+
+test("ready Appearances that carry pictures carry one for each Theme, and differ in more than their colors", () => {
+  const pictured = readyAppearances.filter(entry => entry.pictures)
+  assert(pictured.length >= 5)
+  for (const entry of pictured) {
+      assert(entry.pictures!.light && entry.pictures!.dark, entry.id)
+      const differs = (["radius", "spacing", "tempo", "material", "shadow", "taskbar"] as const).some(key => !sameAppearance(entry.appearance[key], defaultAppearance[key]))
+      assert(differs, entry.id)
+  }
 })
