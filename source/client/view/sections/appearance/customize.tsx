@@ -6,6 +6,7 @@ import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/re
 import { lookOf, type Look } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
+import { useFrame } from "../../settings/frame"
 import { Group, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
 import Preview from "./preview"
 import { useLibrary } from "./library"
@@ -30,12 +31,14 @@ const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
  * The Appearance in use, changed in place: every change applies to every Desktop a moment after it
  * settles, so dragging a slider sends where it ends. Light and dark stand side by side, so there is
  * nothing to switch between. Its wallpapers are left as they are. Save keeps the result among the
- * owner's Appearances.
+ * owner's Appearances, or in the one being edited, and returns to them all.
  */
-export default function Customize() {
+export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     useArrival(true)
     const application = useApplication()
     const library = useLibrary()
+    const { go } = useFrame()
+    const edited = editing === undefined ? null : library.saved.find(entry => entry.id === editing) ?? null
     const authoritative = lookOf(useSystemAppearance())
     const space = useScale(useAppearance().spacing)
     const [draft, setDraft] = useState(authoritative)
@@ -64,7 +67,7 @@ export default function Customize() {
     const taskbar = draft.taskbar
 
     return <>
-        <SectionHeader title="Customize" above={{ title: "Appearance", address: "appearance" }}>
+        <SectionHeader title={edited?.name ?? "Customize"} above={{ title: "Appearance", address: "appearance" }}>
             <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
         </SectionHeader>
         <AppLayout.Content>
@@ -105,7 +108,7 @@ export default function Customize() {
                         </Group>
                         <Group title="Motion">
                             <Row label="Tempo" description="1 is the designed pace; higher is slower.">
-                                <Measure label="Tempo" value={draft.tempo} range={appearanceLimits.tempo} onChange={tempo => change({ ...draft, tempo })} />
+                                <Measure label="Tempo" value={draft.tempo} range={appearanceLimits.tempo} step={0.05} onChange={tempo => change({ ...draft, tempo })} />
                             </Row>
                         </Group>
                         <Group title="Taskbar">
@@ -129,7 +132,8 @@ export default function Customize() {
             </Flex>
         </AppLayout.Content>
         <SectionFooter status={problem ?? "In use on every Desktop as you change it"} problem={problem !== null} />
-        <SaveDialog open={saving} onClose={() => setSaving(false)} onSave={name => void library.save(name, draft)} />
+        <SaveDialog open={saving} name={edited?.name} onClose={() => setSaving(false)}
+            onSave={name => void (edited ? library.replace(edited.id, name, draft) : library.save(name, draft)).then(() => go("appearance"))} />
     </>
 }
 
@@ -157,8 +161,8 @@ function Swatch({ label, value, onChange }: Readonly<{ label: string, value: str
     </ColorPicker>
 }
 
-/** One number within its limits. */
-function Measure({ label, value, range, onChange }: Readonly<{ label: string, value: number, range: Readonly<{ minimum: number, maximum: number }>, onChange: (value: number) => void }>) {
-    const step = range.maximum <= 3 ? 0.01 : 1
+/** One number within its limits: fractions in hundredths, pixels whole, unless a step is given. */
+function Measure({ label, value, range, step: given, onChange }: Readonly<{ label: string, value: number, range: Readonly<{ minimum: number, maximum: number }>, step?: number, onChange: (value: number) => void }>) {
+    const step = given ?? (range.maximum <= 3 ? 0.01 : 1)
     return <Slider aria-label={label} size="small" value={value} minValue={range.minimum} maxValue={range.maximum} step={step} onChange={onChange} style={{ width: "6.5rem" }} />
 }

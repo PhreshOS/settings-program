@@ -20,10 +20,13 @@ const create = "new"
  * The System's Appearance, chosen whole: its colors, shape, surfaces, motion, and Taskbar together.
  * Its wallpapers are left as they are. The ready ones come with Settings, then the owner's own;
  * choosing one applies it at once. When the Appearance in use is none of them, it stands as the
- * current one, to save. A new one starts in Customize, at `customize`.
+ * current one, to save. A new one starts in Customize, at `customize`; one of the owner's is
+ * changed there too, at `customize/<id>`.
  */
 export default function Appearance({ rest }: Readonly<{ rest: string | null }>) {
-    return rest === "customize" ? <Customize /> : <Gallery />
+    if (rest === "customize") return <Customize />
+    if (rest?.startsWith("customize/")) return <Customize editing={rest.slice("customize/".length)} />
+    return <Gallery />
 }
 
 type Entry = AppearanceEntry & Readonly<{ key: string, removable: boolean }>
@@ -68,7 +71,10 @@ function Gallery() {
                         <PreviewPair look={entry.look} />
                         <Flex align="center" gap="small">
                             <Text size="small" style={{ fontWeight: 600, flex: "1 1 auto" }}>{entry.name}</Text>
-                            {entry.removable && <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />}
+                            {entry.removable && <>
+                                <Button size="xsmall" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
+                                <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />
+                            </>}
                         </Flex>
                         <Text size="xsmall" tone="secondary">{entry.description}</Text>
                     </GridList.Item>)}

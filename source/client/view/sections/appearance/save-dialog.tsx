@@ -1,9 +1,10 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button, Dialog, Input } from "@phreshos/react-ui"
 
 /** Asks for a name, then keeps the Appearance in use under it. */
-export default function SaveDialog({ open, onClose, onSave }: Readonly<{ open: boolean, onClose: () => void, onSave: (name: string) => void }>) {
-    const [name, setName] = useState("My appearance")
+export default function SaveDialog({ open, name: initial = "My appearance", onClose, onSave }: Readonly<{ open: boolean, name?: string, onClose: () => void, onSave: (name: string) => void }>) {
+    const [name, setName] = useState(initial)
+    useEffect(() => { if (open) setName(initial) }, [open, initial])
 
     return <Dialog open={open} onOpenChange={next => { if (!next) onClose() }}>
         <Dialog.Backdrop dismissable>

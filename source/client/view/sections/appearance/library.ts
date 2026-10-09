@@ -14,6 +14,10 @@ export function useLibrary() {
             await setSaved(current => [...current ?? [], entry])
             return entry
         },
+        /** Replaces what one saved Appearance holds. */
+        async replace(id: string, name: string, look: Look) {
+            await setSaved(current => (current ?? []).map(item => item.id === id ? { ...item, name, look } : item))
+        },
         async remove(id: string) {
             await setSaved(current => (current ?? []).filter(item => item.id !== id))
         }
