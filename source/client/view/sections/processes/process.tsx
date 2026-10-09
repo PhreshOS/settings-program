@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react"
 import type { Process, ProgramLogRecord } from "@phreshos/core"
-import { AlertDialog, AppLayout, Badge, Button, Flex, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
-import type { EndpointState } from "@client/core/application"
-import usePromise from "@libs/react-promise"
+import { AppLayout, Badge, Button, Flex, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
 import { ReadView, useRead } from "../../components/read"
-import { useControls } from "../../components/controls"
 import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { ago } from "../overview"
+import { EndProcess, Side } from "./parts"
 
 type Details = NonNullable<Awaited<ReturnType<ReturnType<typeof useApplication>["process"]>>>
 
@@ -23,22 +21,21 @@ export default function ProcessView({ identity }: Readonly<{ identity: string }>
 
     return <>
         <SectionHeader title={label} above={{ title: "Processes", address: "processes" }}>
-            {details && <End details={details} onProblem={setProblem} />}
+            {details && <EndProcess process={details.process} onProblem={setProblem} />}
         </SectionHeader>
         <AppLayout.Content>
             <ReadView read={read}>{() => details
-                ? <ProcessPage details={details} onProblem={setProblem} onChange={() => setProblem(null)} />
+                ? <ProcessPage details={details} />
                 : <Empty>This Process has ended.</Empty>}</ReadView>
         </AppLayout.Content>
         <SectionFooter status={problem ?? (details ? `${details.program.name} · ${details.process.identity}` : "")} problem={problem !== null} />
     </>
 }
 
-function ProcessPage({ details, onProblem, onChange }: Readonly<{ details: Details, onProblem: (problem: string) => void, onChange: () => void }>) {
+function ProcessPage({ details }: Readonly<{ details: Details }>) {
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
     const { process, program, parent, options, installed, server, client } = details
-    const { busy, run } = useControls(error => onProblem(error instanceof Error ? error.message : "The change did not apply."), onChange)
     const given = Object.entries(options)
 
     return <Page>
@@ -69,34 +66,12 @@ function ProcessPage({ details, onProblem, onChange }: Readonly<{ details: Detai
         </Group>
 
         <Group title="Endpoints">
-            <Side process={process} side="server" state={server} busy={busy} run={run} />
-            <Side process={process} side="client" state={client} busy={busy} run={run} />
+            {server && <Row label="Server" description="Runs on this machine."><Side state={server} /></Row>}
+            {client && <Row label="Client" description="Its Window on the Desktop."><Side state={client} /></Row>}
         </Group>
 
         <Output process={process} />
     </Page>
-}
-
-/** One side of the Process, if its Program declares it, with the way to stop or start it. */
-function Side({ process, side, state, busy, run }: Readonly<{
-    process: Process
-    side: "server" | "client"
-    state: EndpointState
-    busy: (control: string) => boolean
-    run: (control: string, operation: () => Promise<unknown>) => void
-}>) {
-    const application = useApplication()
-    if (state === null) return null
-
-    return <Row label={side === "server" ? "Server" : "Client"}
-        description={side === "server" ? "Runs on this machine." : "Its Window on the Desktop."}>
-        <Flex align="center" gap="small">
-            {state.service && <Badge size="xsmall">Service</Badge>}
-            {state.running
-                ? <Button size="small" disabled={busy(side)} onPress={() => run(side, () => application.stopEndpoint(process, side))}>Stop</Button>
-                : <Button size="small" disabled={busy(side)} onPress={() => run(side, () => application.startEndpoint(process, side))}>Start</Button>}
-        </Flex>
-    </Row>
 }
 
 /** How many lines the page holds: the newest ones, and those printed while it is open. */
@@ -134,30 +109,4 @@ function Output({ process }: Readonly<{ process: Process }>) {
                 </Table.Body>
             </Table></ScrollArea>}
     </Group>
-}
-
-/** Ends the Process after the owner confirms. */
-function End({ details, onProblem }: Readonly<{ details: Details, onProblem: (problem: string) => void }>) {
-    const application = useApplication()
-    const ending = usePromise(async () => {
-        try { await application.endProcess(details.process) }
-        catch (error) { onProblem(error instanceof Error ? error.message : "Could not end this Process."); throw error }
-    })
-    const label = details.process.name ?? details.process.identity
-
-    return <AlertDialog>
-        <AlertDialog.Trigger size="small" color="danger" pending={ending.isPending}>End</AlertDialog.Trigger>
-        <AlertDialog.Backdrop>
-            <AlertDialog.Content>
-                <AlertDialog.Header>
-                    <AlertDialog.Title>End “{label}”?</AlertDialog.Title>
-                    <AlertDialog.Description>Its Server stops and its Window closes. What it has not saved is lost.</AlertDialog.Description>
-                </AlertDialog.Header>
-                <AlertDialog.Footer>
-                    <AlertDialog.Close>Cancel</AlertDialog.Close>
-                    <AlertDialog.Close color="danger" onPress={() => void ending.safeExecute()}>End</AlertDialog.Close>
-                </AlertDialog.Footer>
-            </AlertDialog.Content>
-        </AlertDialog.Backdrop>
-    </AlertDialog>
 }

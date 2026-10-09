@@ -1,6 +1,5 @@
 import { useState } from "react"
-import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useScale, useAppLayout, ScrollArea } from "@phreshos/react-ui"
-import type { EndpointState } from "@client/core/application"
+import { AppLayout, SearchField, Table, Text, useAppearance, useScale, useAppLayout, ScrollArea } from "@phreshos/react-ui"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
 import { ReadView, useRead } from "../../components/read"
@@ -9,6 +8,7 @@ import { useFrame } from "../../settings/frame"
 import { ago } from "../overview"
 import { count } from "../programs/programs"
 import ProcessView from "./process"
+import { EndProcess, Side } from "./parts"
 
 /** The live Processes, and one of them when the address names it. */
 export default function Processes({ rest }: Readonly<{ rest: string | null }>) {
@@ -20,6 +20,7 @@ function ProcessList() {
     const application = useApplication()
     const processes = useRead(() => application.processes(), [], change => application.followProcesses(change))
     const [query, setQuery] = useState("")
+    const [problem, setProblem] = useState<string | null>(null)
     const { go } = useFrame()
     const { narrow } = useAppLayout()
     const space = useScale(useAppearance().spacing)
@@ -42,6 +43,7 @@ function ProcessList() {
                         {!narrow && <Table.Column id="started" width={space.xlarge * 4}>Started</Table.Column>}
                         <Table.Column id="server" width={space.xlarge * 4.5}>Server</Table.Column>
                         <Table.Column id="client" width={space.xlarge * 4.5}>Client</Table.Column>
+                        <Table.Column id="end" aria-label="End" width={space.xlarge * 3}> </Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {shown.map(({ process, program, server, client }) => <Table.Row key={process.identity} id={process.identity} textValue={process.name ?? process.identity}>
@@ -55,21 +57,13 @@ function ProcessList() {
                             {!narrow && <Table.Cell><Text tone="secondary" className="tabular">{ago(process.startedAt.getTime())}</Text></Table.Cell>}
                             <Table.Cell><Side state={server} /></Table.Cell>
                             <Table.Cell><Side state={client} /></Table.Cell>
+                            <Table.Cell><EndProcess process={process} size="xsmall" depth="none" onProblem={setProblem} /></Table.Cell>
                         </Table.Row>)}
                     </Table.Body>
                 </Table></ScrollArea>}</ReadView>
         </AppLayout.Content>
-        <SectionFooter status={processes.value
+        <SectionFooter problem={problem !== null} status={problem ?? (processes.value
             ? shown.length === all.length ? count(all.length, "Process", "Processes") : `${shown.length} of ${count(all.length, "Process", "Processes")}`
-            : ""} />
+            : "")} />
     </>
-}
-
-/** One side of a Process in a cell: whether it runs, and whether it is offered as a Service. */
-export function Side({ state }: Readonly<{ state: EndpointState }>) {
-    if (state === null) return <Text tone="secondary">—</Text>
-    return <span style={{ display: "flex", gap: 4 }}>
-        {state.running ? <Badge size="xsmall" color="success" dot>Running</Badge> : <Badge size="xsmall">Stopped</Badge>}
-        {state.service && <Badge size="xsmall">Service</Badge>}
-    </span>
 }

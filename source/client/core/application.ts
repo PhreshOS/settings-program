@@ -260,15 +260,6 @@ export default class Application {
         return process.exit()
     }
 
-    /** Starts one side of a Process as its Program declares it, such as a Window that was closed. */
-    public startEndpoint(process: Process, side: "server" | "client") {
-        return process[side].start()
-    }
-
-    public stopEndpoint(process: Process, side: "server" | "client") {
-        return process[side].stop()
-    }
-
     /** The newest lines one Process printed, newest first. */
     public output(process: Process, limit: number) {
         return process.program().logs.query<ProgramLogRecord>("SELECT * FROM logs WHERE process = ? ORDER BY createdAt DESC LIMIT ?", [process.identity, limit])
