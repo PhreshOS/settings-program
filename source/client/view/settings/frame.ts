@@ -4,6 +4,9 @@ import { createContext, useContext } from "react"
 export type Frame = Readonly<{
     /** Opens an address, such as `programs/files`. */
     go: (address: string) => void
+    /** Returns to the address opened before, or goes forward again to one returned from. */
+    back: (() => void) | null
+    forward: (() => void) | null
 }>
 
 export const FrameContext = createContext<Frame | null>(null)
