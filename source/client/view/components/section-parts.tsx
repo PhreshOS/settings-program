@@ -82,3 +82,8 @@ export function Fields({ children }: Readonly<{ children: ReactNode }>) {
     const space = useScale(useAppearance().spacing)
     return <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(14rem, 100%), 1fr))", gap: `${space.large}px ${space.xlarge}px`, padding: space.medium }}>{children}</div>
 }
+
+/** A quiet line where a list has nothing to show, as Files says an empty folder or an unmatched search. */
+export function Empty({ children }: Readonly<{ children: ReactNode }>) {
+    return <Text tone="secondary" size="small" style={{ display: "block", padding: "3rem 1rem", textAlign: "center" }}>{children}</Text>
+}

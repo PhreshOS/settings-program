@@ -6,7 +6,7 @@ import usePromise from "@libs/react-promise"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
 import { ReadView, type Read } from "../../components/read"
-import { Group, Page, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
+import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { permissionPresentation } from "./presentation"
 
@@ -22,7 +22,7 @@ export default function ProgramView({ identity, programs }: Readonly<{ identity:
         <AppLayout.Content>
             <ReadView read={programs}>{() => details
                 ? <ProgramPage details={details} onChange={changed} onProblem={report} />
-                : <Text tone="secondary" style={{ display: "block", padding: "2rem", textAlign: "center" }}>This Program is not installed.</Text>}</ReadView>
+                : <Empty>This Program is not installed.</Empty>}</ReadView>
         </AppLayout.Content>
         <SectionFooter status={problem ?? (details ? `${details.program.identity} · ${details.program.version}` : "")} problem={problem !== null} />
     </>

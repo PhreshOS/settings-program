@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { opensType, type Program } from "@phreshos/core"
-import { AppLayout, Select, Table, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AppLayout, Select, Table, useAppearance, useScale } from "@phreshos/react-ui"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
-import { SectionFooter, SectionHeader } from "../components/section-parts"
+import { SectionFooter, SectionHeader, Empty } from "../components/section-parts"
 
 /** Asks each time: a type without a default Program. */
 const ask = "ask"
@@ -56,7 +56,7 @@ export default function Defaults() {
         <SectionHeader title="Defaults" />
         <AppLayout.Content>
             <ReadView read={read}>{() => types.length === 0
-                ? <Text tone="secondary" style={{ display: "block", padding: space.xlarge, textAlign: "center" }}>No installed Program opens a type of its own yet.</Text>
+                ? <Empty>No installed Program opens a type of its own yet.</Empty>
                 : <Table aria-label="Defaults" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
                     <Table.Header>
                         <Table.Column id="type" rowHeader>Type</Table.Column>

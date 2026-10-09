@@ -4,7 +4,7 @@ import type { ProgramDetails } from "@client/core/application"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
 import { ReadView, useRead, type Read } from "../../components/read"
-import { SectionFooter, SectionHeader } from "../../components/section-parts"
+import { SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import ProgramView from "./program"
 
@@ -35,7 +35,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
         </SectionHeader>
         <AppLayout.Content>
             <ReadView read={programs}>{() => shown.length === 0
-                ? <Text tone="secondary" style={{ display: "block", padding: space.xlarge, textAlign: "center" }}>{terms ? "No matching Programs" : "No installed Programs"}</Text>
+                ? <Empty>{terms ? "No matching Programs" : "No installed Programs"}</Empty>
                 : <Table aria-label="Programs" size="small" onAction={identity => go(`programs/${identity}`)} style={{ minWidth: 0, tableLayout: "fixed" }}>
                     <Table.Header>
                         <Table.Column id="name" rowHeader>Name</Table.Column>

@@ -3,7 +3,7 @@ import type { SystemLogLevel, SystemLogRecord } from "@phreshos/core"
 import { AppLayout, Badge, SearchField, SegmentedControl, Table, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
-import { SectionFooter, SectionHeader } from "../components/section-parts"
+import { SectionFooter, SectionHeader, Empty } from "../components/section-parts"
 
 /** How many records the page holds: the newest ones, and those that arrive while it is open. */
 const held = 300
@@ -39,7 +39,7 @@ export default function Logs() {
         </SectionHeader>
         <AppLayout.Content>
             <ReadView read={read}>{() => records.length === 0
-                ? <Text tone="secondary" style={{ display: "block", padding: space.xlarge, textAlign: "center" }}>{terms || filter !== "all" ? "No matching records" : "Nothing recorded yet"}</Text>
+                ? <Empty>{terms || filter !== "all" ? "No matching records" : "Nothing recorded yet"}</Empty>
                 : <Table aria-label="System log" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
                     <Table.Header>
                         <Table.Column id="time" style={{ width: space.xlarge * 5 }}>Time</Table.Column>
