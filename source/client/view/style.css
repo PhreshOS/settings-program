@@ -30,3 +30,33 @@ body {
 /* A log record's text keeps its own spacing and wraps anywhere. */
 .log-content { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125em; }
+
+/* A section's place, as Files shows a folder's path. */
+.path {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* A step never gets narrower than its shortened name and its separator. */
+.path li { flex: 0 3 auto; }
+.path li:last-child { flex-shrink: 1; }
+.path li > svg { flex: none; }
+
+.path li > :not(svg) {
+    display: block;
+    min-width: 1.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.path-current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}

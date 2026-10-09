@@ -1,12 +1,12 @@
 import type { ReactNode } from "react"
-import { AppLayout, Breadcrumbs, Button, Flex, Surface, Text, useAppearance, useColor, useScale } from "@phreshos/react-ui"
-import { ArrowLeft, ArrowRight } from "@phreshos/react-ui/icons"
+import { AppLayout, Breadcrumbs, Button, DropdownMenu, Flex, Menu, Surface, Text, Toolbar, useAppearance, useAppLayout, useColor, useScale } from "@phreshos/react-ui"
+import { ArrowLeft, ArrowRight, ChevronDown } from "@phreshos/react-ui/icons"
 import { useFrame } from "../settings/frame"
 
 /**
- * A section's header: where it is, as Files shows a folder's path, and its own tools at the end.
- * A deeper page lists the steps above it, each one a way back. In a narrow window it starts with the
- * button that shows the sections.
+ * A section's header, laid out as Files' is: the way around (the sections, back, forward) kept
+ * together, then where it is, then its own tools at the end. A deeper page lists the step above it,
+ * a way back to it; in a narrow window only the current step shows, and it opens the one above.
  */
 export function SectionHeader({ title, above, children }: Readonly<{
     title: ReactNode
@@ -16,16 +16,31 @@ export function SectionHeader({ title, above, children }: Readonly<{
 }>) {
     const space = useScale(useAppearance().spacing)
     const { go, back, forward } = useFrame()
+    const { narrow } = useAppLayout()
 
-    return <AppLayout.Header style={{ paddingInline: space.small, marginBottom: space.small }}>
-        <AppLayout.SidebarToggle />
-        {/* As in Files: back and forward through where Settings has been. */}
-        <Button iconOnly depth="flat" size="small" aria-label="Back" disabled={back === null} onPress={() => back?.()}><ArrowLeft /></Button>
-        <Button iconOnly depth="flat" size="small" aria-label="Forward" disabled={forward === null} onPress={() => forward?.()}><ArrowRight /></Button>
-        <Breadcrumbs size="small" style={{ flex: "1 1 auto", flexWrap: "nowrap", minWidth: 0 }} onAction={key => go(String(key))}>
-            {above && <Breadcrumbs.Item id={above.address}>{above.title}</Breadcrumbs.Item>}
-            <Breadcrumbs.Item id="current">{title}</Breadcrumbs.Item>
-        </Breadcrumbs>
+    return <AppLayout.Header style={{ gap: space.medium, paddingInline: space.small, marginBottom: space.small }}>
+        <Toolbar aria-label="Navigation" gap="xsmall">
+            <AppLayout.SidebarToggle />
+            <Button iconOnly depth="flat" size="small" aria-label="Back" disabled={back === null} onPress={() => back?.()}><ArrowLeft /></Button>
+            <Button iconOnly depth="flat" size="small" aria-label="Forward" disabled={forward === null} onPress={() => forward?.()}><ArrowRight /></Button>
+        </Toolbar>
+        <div className="path">
+            {narrow && above
+                ? <DropdownMenu>
+                    <DropdownMenu.Trigger depth="none" size="small" style={{ maxWidth: "100%", flexShrink: 1 }} aria-label={typeof title === "string" ? `${title}, the step above` : "The step above"}>
+                        <span className="path-current">{title}</span><ChevronDown />
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Content>
+                        <Menu aria-label="The step above" size="small" onAction={key => go(String(key))}>
+                            <Menu.Item id={above.address}>{above.title}</Menu.Item>
+                        </Menu>
+                    </DropdownMenu.Content>
+                </DropdownMenu>
+                : <Breadcrumbs size="small" style={{ flexWrap: "nowrap", minWidth: 0 }} onAction={key => go(String(key))}>
+                    {above && <Breadcrumbs.Item id={above.address}>{above.title}</Breadcrumbs.Item>}
+                    <Breadcrumbs.Item id="current">{title}</Breadcrumbs.Item>
+                </Breadcrumbs>}
+        </div>
         {children}
     </AppLayout.Header>
 }
