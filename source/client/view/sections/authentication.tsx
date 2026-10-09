@@ -90,7 +90,7 @@ export default function Authentication() {
                                 <Table.Cell><span className="truncate">{connection.device ?? "Unknown browser"}</span></Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{ago(connection.connectedAt.getTime())}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary">{session ? "Yes" : "No"}</Text></Table.Cell>
-                                <Table.Cell>{!session && <Button size="xsmall" disabled={admitting.isPending} onPress={() => void admitting.safeExecute(connection)}>Sign in</Button>}</Table.Cell>
+                                <Table.Cell>{!session && <Button size="xsmall" depth="none" color="success" disabled={admitting.isPending} onPress={() => void admitting.safeExecute(connection)}>Sign in</Button>}</Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
                     </Table>
