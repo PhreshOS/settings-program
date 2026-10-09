@@ -8,7 +8,6 @@ import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { useFrame } from "../../settings/frame"
 import { Group, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
-import Preview from "./preview"
 import { useLibrary } from "./library"
 import SaveDialog from "./save-dialog"
 
@@ -40,7 +39,6 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     const { go } = useFrame()
     const edited = editing === undefined ? null : library.saved.find(entry => entry.id === editing) ?? null
     const authoritative = lookOf(useSystemAppearance())
-    const space = useScale(useAppearance().spacing)
     const [draft, setDraft] = useState(authoritative)
     const [problem, setProblem] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
@@ -72,12 +70,6 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
         </SectionHeader>
         <AppLayout.Content>
             <Flex direction="column" gap="large">
-                <Grid columns="repeat(2, minmax(0, 1fr))" gap="medium">
-                    {modes.map(mode => <Flex key={mode} direction="column" gap="xsmall">
-                        <Text size="small" tone="secondary" style={{ fontWeight: 600 }}>{mode === "light" ? "Light" : "Dark"}</Text>
-                        <div style={{ borderRadius: space.small, overflow: "hidden" }}><Preview look={draft} mode={mode} height="6rem" /></div>
-                    </Flex>)}
-                </Grid>
                 <Grid columns="repeat(auto-fit, minmax(min(22rem, 100%), 1fr))" gap="large" style={{ alignItems: "start" }}>
                     <Flex direction="column" gap="large">
                         <Group title="Colors" aside={<Columns />}>
