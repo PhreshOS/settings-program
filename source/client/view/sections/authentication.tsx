@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import type { Connection, Session } from "@phreshos/core"
-import { AlertDialog, AppLayout, Badge, Button, Input, Table, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AlertDialog, AppLayout, Badge, Button, Input, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
@@ -14,6 +14,7 @@ import { count } from "./programs/programs"
  */
 export default function Authentication() {
     const application = useApplication()
+    const space = useScale(useAppearance().spacing)
     const read = useRead(async () => {
         const [owner, sessions, connections] = await Promise.all([application.authentication(), application.sessions(), application.connections()])
         return { ...owner, ...sessions, connections }
@@ -53,19 +54,19 @@ export default function Authentication() {
             <ReadView read={read}>{value => <Page wide>
                 <Credentials state={value.state} requirements={value.requirements} onChanged={() => { setProblem(null); read.retry() }} onProblem={setProblem} />
                 <Group title="Sessions" description="Each sign-in. It stays valid while a browser uses it, and for a day after the last one leaves.">
-                    <Table aria-label="Sessions" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
+                    <ScrollArea axis="horizontal"><Table aria-label="Sessions" size="small">
                         <Table.Header>
-                            <Table.Column id="device" rowHeader>Signed in from</Table.Column>
-                            <Table.Column id="signed-in">Signed in</Table.Column>
-                            <Table.Column id="active">Last active</Table.Column>
-                            <Table.Column id="browsers">Browsers</Table.Column>
-                            <Table.Column id="end"> </Table.Column>
+                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 7}>Signed in from</Table.Column>
+                            <Table.Column id="signed-in" width={space.xlarge * 4.5}>Signed in</Table.Column>
+                            <Table.Column id="active" width={space.xlarge * 4}>Last active</Table.Column>
+                            <Table.Column id="browsers" width={space.xlarge * 3.5}>Browsers</Table.Column>
+                            <Table.Column id="end" width={space.xlarge * 3.5}> </Table.Column>
                         </Table.Header>
                         <Table.Body>
                             {sessions.map(({ session, connections, lastActiveAt }) => <Table.Row key={session.identity} id={session.identity} textValue={session.device ?? session.identity}>
                                 <Table.Cell>
                                     <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
-                                        <span className="truncate">{session.device ?? "Unknown browser"}</span>
+                                        <Text truncate>{session.device ?? "Unknown browser"}</Text>
                                         {session.identity === value.current && <Badge size="xsmall" color="success">This browser</Badge>}
                                     </span>
                                 </Table.Cell>
@@ -75,25 +76,25 @@ export default function Authentication() {
                                 <Table.Cell><Button size="xsmall" depth="none" color="danger" disabled={ending.isPending} onPress={() => void ending.safeExecute(session)}>Sign out</Button></Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
-                    </Table>
+                    </Table></ScrollArea>
                 </Group>
                 <Group title="Connections" description="The browsers connected now, signed in or not.">
-                    <Table aria-label="Connections" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
+                    <ScrollArea axis="horizontal"><Table aria-label="Connections" size="small">
                         <Table.Header>
-                            <Table.Column id="device" rowHeader>Browser</Table.Column>
-                            <Table.Column id="connected">Connected</Table.Column>
-                            <Table.Column id="session">Signed in</Table.Column>
-                            <Table.Column id="admit"> </Table.Column>
+                            <Table.Column id="device" rowHeader minWidth={space.xlarge * 7}>Browser</Table.Column>
+                            <Table.Column id="connected" width={space.xlarge * 4}>Connected</Table.Column>
+                            <Table.Column id="session" width={space.xlarge * 3.5}>Signed in</Table.Column>
+                            <Table.Column id="admit" width={space.xlarge * 3.5}> </Table.Column>
                         </Table.Header>
                         <Table.Body>
                             {connections.map(({ connection, session }) => <Table.Row key={connection.identity} id={connection.identity} textValue={connection.device ?? connection.identity}>
-                                <Table.Cell><span className="truncate">{connection.device ?? "Unknown browser"}</span></Table.Cell>
+                                <Table.Cell>{connection.device ?? "Unknown browser"}</Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{ago(connection.connectedAt.getTime())}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary">{session ? "Yes" : "No"}</Text></Table.Cell>
                                 <Table.Cell>{!session && <Button size="xsmall" depth="none" color="success" disabled={admitting.isPending} onPress={() => void admitting.safeExecute(connection)}>Sign in</Button>}</Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
-                    </Table>
+                    </Table></ScrollArea>
                 </Group>
             </Page>}</ReadView>
         </AppLayout.Content>

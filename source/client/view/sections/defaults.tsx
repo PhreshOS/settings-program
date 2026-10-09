@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { opensType, type Program } from "@phreshos/core"
-import { AppLayout, Select, Table, useAppearance, useScale } from "@phreshos/react-ui"
+import { AppLayout, Select, Table, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
@@ -57,14 +57,14 @@ export default function Defaults() {
         <AppLayout.Content>
             <ReadView read={read}>{() => types.length === 0
                 ? <Empty>No installed Program opens a type of its own yet.</Empty>
-                : <Table aria-label="Defaults" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
+                : <ScrollArea axis="horizontal"><Table aria-label="Defaults" size="small">
                     <Table.Header>
-                        <Table.Column id="type" rowHeader>Type</Table.Column>
-                        <Table.Column id="program" style={{ width: space.xlarge * 12 }}>Opens with</Table.Column>
+                        <Table.Column id="type" rowHeader minWidth={space.xlarge * 8}>Type</Table.Column>
+                        <Table.Column id="program" width={space.xlarge * 12}>Opens with</Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {types.map(type => <Table.Row key={type} id={type} textValue={type}>
-                            <Table.Cell><span className="mono truncate">{type}</span></Table.Cell>
+                            <Table.Cell><span className="mono">{type}</span></Table.Cell>
                             <Table.Cell>
                                 <Select aria-label={`Opens ${type} with`} size="small" value={defaults[type]?.identity ?? ask} disabled={choosing.isPending}
                                     onChange={value => {
@@ -78,7 +78,7 @@ export default function Defaults() {
                             </Table.Cell>
                         </Table.Row>)}
                     </Table.Body>
-                </Table>}</ReadView>
+                </Table></ScrollArea>}</ReadView>
         </AppLayout.Content>
         <SectionFooter status={problem ?? "A type without a default uses its family's, or asks each time it opens."} problem={problem !== null} />
     </>

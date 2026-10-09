@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useScale, useAppLayout } from "@phreshos/react-ui"
+import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useScale, useAppLayout, ScrollArea } from "@phreshos/react-ui"
 import type { ProgramDetails } from "@client/core/application"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
@@ -36,30 +36,30 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
         <AppLayout.Content>
             <ReadView read={programs}>{() => shown.length === 0
                 ? <Empty>{terms ? "No matching Programs" : "No installed Programs"}</Empty>
-                : <Table aria-label="Programs" size="small" onAction={identity => go(`programs/${identity}`)} style={{ minWidth: 0, tableLayout: "fixed" }}>
+                : <ScrollArea axis="horizontal"><Table aria-label="Programs" size="small" onAction={identity => go(`programs/${identity}`)}>
                     <Table.Header>
-                        <Table.Column id="name" rowHeader>Name</Table.Column>
-                        <Table.Column id="version" style={{ width: space.xlarge * 3.5 }}>Version</Table.Column>
+                        <Table.Column id="name" rowHeader minWidth={space.xlarge * 7}>Name</Table.Column>
+                        <Table.Column id="version" width={space.xlarge * 3.5}>Version</Table.Column>
                         {/* A narrow window keeps the name room; the rest shows on the Program's own page. */}
-                        {!narrow && <Table.Column id="category" style={{ width: space.xlarge * 4.5 }}>Category</Table.Column>}
-                        {!narrow && <Table.Column id="permissions" style={{ width: space.xlarge * 5 }}>Permissions</Table.Column>}
-                        <Table.Column id="startup" style={{ width: space.xlarge * 4 }}>Startup</Table.Column>
+                        {!narrow && <Table.Column id="category" width={space.xlarge * 4.5}>Category</Table.Column>}
+                        {!narrow && <Table.Column id="permissions" width={space.xlarge * 5}>Permissions</Table.Column>}
+                        <Table.Column id="startup" width={space.xlarge * 4}>Startup</Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {shown.map(({ program, permissions, startup }) => <Table.Row key={program.identity} id={program.identity} textValue={program.name}>
                             <Table.Cell>
                                 <span style={{ display: "flex", alignItems: "center", gap: space.small, minWidth: 0 }} title={program.description ?? undefined}>
                                     <Icon of={program} size={space.medium * 1.5} />
-                                    <span className="truncate">{program.name}</span>
+                                    <Text truncate>{program.name}</Text>
                                 </span>
                             </Table.Cell>
                             <Table.Cell><Text tone="secondary" className="tabular">{program.version}</Text></Table.Cell>
                             {!narrow && <Table.Cell><Text tone="secondary">{program.categories[0] ?? "Other"}</Text></Table.Cell>}
-                            {!narrow && <Table.Cell><span className="truncate" style={{ display: "block" }} title={granted(permissions)}><Text tone="secondary">{granted(permissions)}</Text></span></Table.Cell>}
+                            {!narrow && <Table.Cell><Text tone="secondary" truncate title={granted(permissions)}>{granted(permissions)}</Text></Table.Cell>}
                             <Table.Cell>{startup && <Badge size="xsmall" color="success" dot>{startup.name ?? "Starts"}</Badge>}</Table.Cell>
                         </Table.Row>)}
                     </Table.Body>
-                </Table>}</ReadView>
+                </Table></ScrollArea>}</ReadView>
         </AppLayout.Content>
         <SectionFooter status={programs.value
             ? [shown.length === all.length ? count(all.length, "Program") : `${shown.length} of ${count(all.length, "Program")}`, starting ? `${starting} start with the System` : null].filter(Boolean).join(" · ")

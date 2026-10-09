@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import type { SystemLogLevel, SystemLogRecord } from "@phreshos/core"
-import { AppLayout, Badge, SearchField, SegmentedControl, Table, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AppLayout, Badge, SearchField, SegmentedControl, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
 import { SectionFooter, SectionHeader, Empty } from "../components/section-parts"
@@ -40,11 +40,11 @@ export default function Logs() {
         <AppLayout.Content>
             <ReadView read={read}>{() => records.length === 0
                 ? <Empty>{terms || filter !== "all" ? "No matching records" : "Nothing recorded yet"}</Empty>
-                : <Table aria-label="System log" size="small" style={{ minWidth: 0, tableLayout: "fixed" }}>
+                : <ScrollArea axis="horizontal"><Table aria-label="System log" size="small">
                     <Table.Header>
-                        <Table.Column id="time" style={{ width: space.xlarge * 5 }}>Time</Table.Column>
-                        <Table.Column id="level" style={{ width: space.xlarge * 4 }}>Level</Table.Column>
-                        <Table.Column id="content" rowHeader>Record</Table.Column>
+                        <Table.Column id="time" width={space.xlarge * 5}>Time</Table.Column>
+                        <Table.Column id="level" width={space.xlarge * 4}>Level</Table.Column>
+                        <Table.Column id="content" rowHeader minWidth={space.xlarge * 8}>Record</Table.Column>
                     </Table.Header>
                     <Table.Body>
                         {records.map((record, index) => <Table.Row key={`${record.createdAt}-${index}`} id={`${record.createdAt}-${index}`} textValue={record.content}>
@@ -53,7 +53,7 @@ export default function Logs() {
                             <Table.Cell><span className="log-content" title={`${record.source} · ${record.kind}`}>{record.content}</span></Table.Cell>
                         </Table.Row>)}
                     </Table.Body>
-                </Table>}</ReadView>
+                </Table></ScrollArea>}</ReadView>
         </AppLayout.Content>
         <SectionFooter status={read.value ? `Following · the newest ${held} records` : ""} />
     </>
