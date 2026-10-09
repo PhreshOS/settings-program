@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react"
-import type { Connection, Session } from "@phreshos/core"
 import { AlertDialog, AppLayout, Badge, Button, Input, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
+import { useControls } from "../components/controls"
 import { Fields, Group, Page, SectionFooter, SectionHeader } from "../components/section-parts"
 import { ago } from "./overview"
 import { count } from "./programs/programs"
@@ -20,22 +20,14 @@ export default function Authentication() {
         return { ...owner, ...sessions, connections }
     }, [], change => application.followSessions(change))
     const [problem, setProblem] = useState<string | null>(null)
-    const report = (fallback: string) => (error: unknown) => { setProblem(error instanceof Error ? error.message : fallback); throw error }
-    const ending = usePromise(async (session: Session | null) => {
-        try { await (session ? application.signOut(session) : application.signOutAllSessions()); setProblem(null) }
-        catch (error) { report("It could not sign out.")(error) }
-    })
-    const admitting = usePromise(async (connection: Connection) => {
-        try { await application.signInConnection(connection); setProblem(null) }
-        catch (error) { report("The browser could not be signed in.")(error) }
-    })
+    const { busy, run } = useControls(error => setProblem(error instanceof Error ? error.message : "The change did not apply."), () => setProblem(null))
     const sessions = read.value?.sessions ?? []
     const connections = read.value?.connections ?? []
 
     return <>
         <SectionHeader title="Authentication">
             <AlertDialog>
-                <AlertDialog.Trigger size="small" color="danger" disabled={!sessions.length} pending={ending.isPending}>Sign out everywhere</AlertDialog.Trigger>
+                <AlertDialog.Trigger size="small" color="danger" disabled={!sessions.length} pending={busy("everywhere")}>Sign out everywhere</AlertDialog.Trigger>
                 <AlertDialog.Backdrop>
                     <AlertDialog.Content>
                         <AlertDialog.Header>
@@ -44,7 +36,7 @@ export default function Authentication() {
                         </AlertDialog.Header>
                         <AlertDialog.Footer>
                             <AlertDialog.Close>Cancel</AlertDialog.Close>
-                            <AlertDialog.Close color="danger" onPress={() => void ending.safeExecute(null)}>Sign out everywhere</AlertDialog.Close>
+                            <AlertDialog.Close color="danger" onPress={() => run("everywhere", () => application.signOutAllSessions())}>Sign out everywhere</AlertDialog.Close>
                         </AlertDialog.Footer>
                     </AlertDialog.Content>
                 </AlertDialog.Backdrop>
@@ -73,7 +65,7 @@ export default function Authentication() {
                                 <Table.Cell><Text tone="secondary" className="tabular">{session.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{connections.length ? "Now" : lastActiveAt ? ago(lastActiveAt.getTime()) : "—"}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{connections.length || "None"}</Text></Table.Cell>
-                                <Table.Cell><Button size="xsmall" depth="none" color="danger" disabled={ending.isPending} onPress={() => void ending.safeExecute(session)}>Sign out</Button></Table.Cell>
+                                <Table.Cell><Button size="xsmall" depth="none" color="danger" disabled={busy(session.identity)} onPress={() => run(session.identity, () => application.signOut(session))}>Sign out</Button></Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
                     </Table></ScrollArea>
@@ -91,7 +83,7 @@ export default function Authentication() {
                                 <Table.Cell>{connection.device ?? "Unknown browser"}</Table.Cell>
                                 <Table.Cell><Text tone="secondary" className="tabular">{ago(connection.connectedAt.getTime())}</Text></Table.Cell>
                                 <Table.Cell><Text tone="secondary">{session ? "Yes" : "No"}</Text></Table.Cell>
-                                <Table.Cell>{!session && <Button size="xsmall" depth="none" color="success" disabled={admitting.isPending} onPress={() => void admitting.safeExecute(connection)}>Sign in</Button>}</Table.Cell>
+                                <Table.Cell>{!session && <Button size="xsmall" depth="none" color="success" disabled={busy(connection.identity)} onPress={() => run(connection.identity, () => application.signInConnection(connection))}>Sign in</Button>}</Table.Cell>
                             </Table.Row>)}
                         </Table.Body>
                     </Table></ScrollArea>

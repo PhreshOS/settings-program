@@ -8,6 +8,7 @@ import Icon from "../../components/icon"
 import { ReadView, type Read } from "../../components/read"
 import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
+import { useControls } from "../../components/controls"
 import { permissionPresentation } from "./presentation"
 
 /** One installed Program: what it may do, what it does with the System, and its removal. */
@@ -33,11 +34,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
     const { program, startup, pinned } = details
-    const act = usePromise(async (operation: () => Promise<unknown>) => {
-        try { await operation(); onChange() }
-        catch (error) { onProblem(error); throw error }
-    })
-    const run = (operation: () => Promise<unknown>) => void act.safeExecute(operation)
+    const { busy, run } = useControls(onProblem, onChange)
 
     return <Page>
         <Flex align="center" gap="medium">
@@ -52,18 +49,18 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
             <Uninstall details={details} onUninstalled={() => go("programs")} onProblem={onProblem} />
         </Flex>
 
-        <Permissions details={details} busy={act.isPending} run={run} />
+        <Permissions details={details} busy={busy} run={run} />
 
         <Group title="With the System">
             <Row label="Startup" description={startup
                 ? `Starts ${startup.name ? `“${startup.name}”` : "its default launch"} each time the System starts.`
                 : "Nothing starts with the System. The button starts its default launch."}>
                 {startup
-                    ? <Button size="small" disabled={act.isPending} onPress={() => run(() => application.removeStartup(program))}>Remove</Button>
-                    : <Button size="small" disabled={act.isPending} onPress={() => run(() => application.setStartup(program))}>Start with the System</Button>}
+                    ? <Button size="small" disabled={busy("startup")} onPress={() => run("startup", () => application.removeStartup(program))}>Remove</Button>
+                    : <Button size="small" disabled={busy("startup")} onPress={() => run("startup", () => application.setStartup(program))}>Start with the System</Button>}
             </Row>
             <Row label="Pinned to the Taskbar">
-                <Switch aria-label="Pinned to the Taskbar" checked={pinned} disabled={act.isPending} onChange={on => run(() => application.pin(program, on))} />
+                <Switch aria-label="Pinned to the Taskbar" checked={pinned} disabled={busy("pin")} onChange={on => run("pin", () => application.pin(program, on))} />
             </Row>
         </Group>
 
@@ -82,7 +79,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
  * the Program declares, or the whole permission when it declares none. Reset appears when the value
  * differs from the declaration, and returns to it.
  */
-function Permissions({ details, busy, run }: Readonly<{ details: ProgramDetails, busy: boolean, run: (operation: () => Promise<unknown>) => void }>) {
+function Permissions({ details, busy, run }: Readonly<{ details: ProgramDetails, busy: (control: string) => boolean, run: (control: string, operation: () => Promise<unknown>) => void }>) {
     const application = useApplication()
     const { program, permissions } = details
     const declared = program.declaredPermissions
@@ -98,9 +95,9 @@ function Permissions({ details, busy, run }: Readonly<{ details: ProgramDetails,
             return <Row key={name} label={permissionPresentation[name].title} description={describe(value, permissionPresentation[name].description)}>
                 <Flex align="center" gap="small">
                     {!sameScope(value, declaration === undefined ? null : declaration === true ? [] : declaration) &&
-                        <Button size="small" depth="none" disabled={busy} onPress={() => run(() => application.reset(program, name))}>Reset</Button>}
-                    <Switch aria-label={permissionPresentation[name].title} checked={Array.isArray(value)} disabled={busy}
-                        onChange={on => run(() => on
+                        <Button size="small" depth="none" disabled={busy(name)} onPress={() => run(name, () => application.reset(program, name))}>Reset</Button>}
+                    <Switch aria-label={permissionPresentation[name].title} checked={Array.isArray(value)} disabled={busy(name)}
+                        onChange={on => run(name, () => on
                             ? application.allow(program, name, declaration === undefined || declaration === true ? true : declaration as never)
                             : application.deny(program, name))} />
                 </Flex>

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { opensType, type Program } from "@phreshos/core"
 import { AppLayout, Select, Table, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
-import usePromise from "@libs/react-promise"
+import { useControls } from "../components/controls"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
 import { SectionFooter, SectionHeader, Empty } from "../components/section-parts"
@@ -30,14 +30,8 @@ export default function Defaults() {
         return () => stops.forEach(stop => stop())
     })
     const [problem, setProblem] = useState<string | null>(null)
-    const choosing = usePromise(async (type: string, program: Program | null) => {
-        try {
-            if (program === null) await application.clearOpeningDefault(type)
-            else await application.setOpeningDefault(type, program)
-            setProblem(null)
-        }
-        catch (error) { setProblem(error instanceof Error ? error.message : "The default did not change."); throw error }
-    })
+    const { busy, run } = useControls(error => setProblem(error instanceof Error ? error.message : "The default did not change."), () => setProblem(null))
+    const choose = (type: string, program: Program | null) => run(type, () => program === null ? application.clearOpeningDefault(type) : application.setOpeningDefault(type, program))
 
     const programs = read.value?.programs ?? []
     const defaults = read.value?.defaults ?? {}
@@ -66,11 +60,11 @@ export default function Defaults() {
                         {types.map(type => <Table.Row key={type} id={type} textValue={type}>
                             <Table.Cell><span className="mono">{type}</span></Table.Cell>
                             <Table.Cell>
-                                <Select aria-label={`Opens ${type} with`} size="small" value={defaults[type]?.identity ?? ask} disabled={choosing.isPending}
+                                <Select aria-label={`Opens ${type} with`} size="small" value={defaults[type]?.identity ?? ask} disabled={busy(type)}
                                     onChange={value => {
                                         if (value === null) return
                                         const chosen = value === ask ? null : opener(type).find(program => program.identity === value)
-                                        if (chosen !== undefined) void choosing.safeExecute(type, chosen)
+                                        if (chosen !== undefined) choose(type, chosen)
                                     }}>
                                     <Select.Item id={ask}>{fallback(type)}</Select.Item>
                                     {opener(type).map(program => <Select.Item key={program.identity} id={program.identity}>{program.name}</Select.Item>)}

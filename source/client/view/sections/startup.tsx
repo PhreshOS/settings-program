@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { AppLayout, Button, Flex, Text, useAppearance, useScale } from "@phreshos/react-ui"
-import usePromise from "@libs/react-promise"
+import { useControls } from "../components/controls"
 import { useApplication } from "../application"
 import Icon from "../components/icon"
 import { ReadView, useRead } from "../components/read"
@@ -16,10 +16,7 @@ export default function Startup() {
     const space = useScale(useAppearance().spacing)
     const programs = useRead(() => application.programs(), [], change => application.followPrograms(change))
     const [problem, setProblem] = useState<string | null>(null)
-    const removing = usePromise(async (details: NonNullable<typeof programs.value>[number]) => {
-        try { await application.removeStartup(details.program); setProblem(null) }
-        catch (error) { setProblem(error instanceof Error ? error.message : "It could not be removed."); throw error }
-    })
+    const { busy, run } = useControls(error => setProblem(error instanceof Error ? error.message : "It could not be removed."), () => setProblem(null))
     const starting = (programs.value ?? []).filter(entry => entry.startup !== null)
 
     return <>
@@ -32,8 +29,8 @@ export default function Startup() {
                         <Icon of={details.program} size={space.large} />
                         {details.program.name}
                     </Flex>} description={details.startup?.name ? `Starts “${details.startup.name}”.` : "Starts its default launch."}>
-                        <Button size="small" aria-label={`Remove ${details.program.name}'s startup`} disabled={removing.isPending}
-                            onPress={() => void removing.safeExecute(details)}>Remove</Button>
+                        <Button size="small" aria-label={`Remove ${details.program.name}'s startup`} disabled={busy(details.program.identity)}
+                            onPress={() => run(details.program.identity, () => application.removeStartup(details.program))}>Remove</Button>
                     </Row>)}
                 </Group>
                 <Text size="small" tone="secondary">A Program sets this itself, such as the Files panel; any Program's own page can also start its default launch with the System.</Text>
