@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { appearanceLimits, systemWallpapers, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
+import { appearanceLimits, systemWallpapers, wallpaperSizeLimit, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
 import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, Grid, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
@@ -10,7 +10,7 @@ import { useFrame } from "../../settings/frame"
 import { Group, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
 import { useLibrary } from "./library"
 import SaveDialog from "./save-dialog"
-import { wallpaperFiles, wallpaperLimit, wallpaperSource } from "./wallpaper"
+import { wallpaperFiles, wallpaperSource } from "./wallpaper"
 
 const modes: readonly Theme[] = ["light", "dark"]
 
@@ -70,7 +70,7 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     // The file becomes an upload first; the System refuses a wallpaper it cannot show.
     async function chooseWallpaper(mode: Theme, place: keyof AppearanceWallpapers, file: File | undefined) {
         if (!file) return
-        if (file.size > wallpaperLimit) return setProblem("A wallpaper cannot exceed 50 MB.")
+        if (file.size > wallpaperSizeLimit) return setProblem("A wallpaper cannot exceed 50 MB.")
         setUploading(`${mode}:${place}`)
         try {
             themed("wallpapers", mode, { [place]: await application.upload(file) })
