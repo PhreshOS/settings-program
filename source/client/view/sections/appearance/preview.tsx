@@ -1,15 +1,19 @@
-import type { Theme } from "@phreshos/core"
-import type { Look } from "@client/core/themes"
+import type { Appearance, Theme } from "@phreshos/core"
 
-/** A small Desktop in a look, in light or dark: its background, one window, and the primary color on it. */
-export default function Preview({ look, mode, height = "4rem" }: Readonly<{ look: Look, mode: Theme, height?: string }>) {
+type Shown = Pick<Appearance, "colors" | "radius" | "spacing" | "shadow" | "material">
+
+/**
+ * A small Desktop in an Appearance, in light or dark: its wallpaper, or its background where there
+ * is none to show, one window, and the primary color on it.
+ */
+export default function Preview({ look, mode, wallpaper, height = "4rem" }: Readonly<{ look: Shown, mode: Theme, wallpaper?: string | null, height?: string }>) {
     const colors = look.colors[mode] ?? look.colors.light
     const shadow = look.shadow[mode] ?? look.shadow.light
     const material = look.material[mode] ?? look.material.light
     const radius = look.radius / 2
     const gap = look.spacing / 3
 
-    return <div aria-hidden="true" style={{ position: "relative", height, background: colors.background, overflow: "hidden" }}>
+    return <div aria-hidden="true" style={{ position: "relative", height, background: wallpaper ? `center / cover url("${wallpaper}") ${colors.background}` : colors.background, overflow: "hidden" }}>
         <div style={{
             position: "absolute", inset: "0.5rem 1rem 0.5rem 0.5rem", borderRadius: radius, display: "flex", gap, padding: gap,
             background: `color-mix(in oklab, ${colors.default} ${Math.round(material.opacity * 100)}%, transparent)`,
@@ -26,10 +30,10 @@ export default function Preview({ look, mode, height = "4rem" }: Readonly<{ look
     </div>
 }
 
-/** A look in light and dark, side by side. */
-export function PreviewPair({ look, height }: Readonly<{ look: Look, height?: string }>) {
+/** An Appearance in light and dark, side by side. */
+export function PreviewPair({ look, wallpapers, height }: Readonly<{ look: Shown, wallpapers?: Readonly<{ light: string | null, dark: string | null }>, height?: string }>) {
     return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderRadius: "0.5rem", overflow: "hidden" }}>
-        <Preview look={look} mode="light" height={height} />
-        <Preview look={look} mode="dark" height={height} />
+        <Preview look={look} mode="light" wallpaper={wallpapers?.light} height={height} />
+        <Preview look={look} mode="dark" wallpaper={wallpapers?.dark} height={height} />
     </div>
 }
