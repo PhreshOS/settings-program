@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { AppLayout, Breadcrumbs, Button, Flex, Surface, Text, useAppearance, useColor, useScale } from "@phreshos/react-ui"
-import { ArrowLeft, ArrowRight, ArrowUp } from "@phreshos/react-ui/icons"
+import { ArrowLeft, ArrowRight } from "@phreshos/react-ui/icons"
 import { useFrame } from "../settings/frame"
 
 /**
@@ -19,10 +19,9 @@ export function SectionHeader({ title, above, children }: Readonly<{
 
     return <AppLayout.Header style={{ paddingInline: space.small, marginBottom: space.small }}>
         <AppLayout.SidebarToggle />
-        {/* As in Files: back and forward through where Settings has been, and up to the step above. */}
+        {/* As in Files: back and forward through where Settings has been. */}
         <Button iconOnly depth="flat" size="small" aria-label="Back" disabled={back === null} onPress={() => back?.()}><ArrowLeft /></Button>
         <Button iconOnly depth="flat" size="small" aria-label="Forward" disabled={forward === null} onPress={() => forward?.()}><ArrowRight /></Button>
-        <Button iconOnly depth="flat" size="small" aria-label="Up" disabled={!above} onPress={() => above && go(above.address)}><ArrowUp /></Button>
         <Breadcrumbs size="small" style={{ flex: "1 1 auto", flexWrap: "nowrap", minWidth: 0 }} onAction={key => go(String(key))}>
             {above && <Breadcrumbs.Item id={above.address}>{above.title}</Breadcrumbs.Item>}
             <Breadcrumbs.Item id="current">{title}</Breadcrumbs.Item>
