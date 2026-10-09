@@ -1,6 +1,6 @@
 import { defaultDesktopScale, desktopPreferencesLimits, type DesktopPreferencesUpdate } from "@phreshos/core"
-import { useDesktopPreferences } from "@phreshos/react"
-import { AppLayout, Button, Flex, Slider } from "@phreshos/react-ui"
+import { useDesktopPreferences, useResolvedDesktopPreferences } from "@phreshos/react"
+import { AppLayout, Button, SegmentedControl, Slider } from "@phreshos/react-ui"
 import { Monitor, Moon, Sun } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../application"
@@ -9,8 +9,8 @@ import { Group, Page, Row, SectionFooter, SectionHeader } from "../components/se
 
 /**
  * This Desktop's own preferences. Each change applies at once and only to this browser, so there
- * is nothing to save. A Program reads only the effective values, not whether one follows the
- * browser, so the choices are actions and each description tells the current state.
+ * is nothing to save. Each control shows what was chosen; following the browser also says what
+ * that gives now.
  */
 export default function Display() {
     useArrival(true)
@@ -39,21 +39,23 @@ export function useDesktopUpdate() {
 /** Theme, animations, and scale of this Desktop; `compact` leaves the scale out. */
 export function DesktopPreferences({ update, compact = false }: Readonly<{ update: (update: DesktopPreferencesUpdate) => void, compact?: boolean }>) {
     const preferences = useDesktopPreferences()
+    const resolved = useResolvedDesktopPreferences()
 
     return <Group title="This Desktop" description="Only this browser shows these.">
-        <Row label="Theme" description={`Now ${preferences.theme}.`}>
-            <Flex gap="xsmall" wrap>
-                <Button size="small" onPress={() => update({ theme: "desktop" })}><Monitor />Follow browser</Button>
-                <Button size="small" onPress={() => update({ theme: "light" })}><Sun />Light</Button>
-                <Button size="small" onPress={() => update({ theme: "dark" })}><Moon />Dark</Button>
-            </Flex>
+        <Row label="Theme" description={preferences.theme === "browser" ? `Follows the browser, now ${resolved.theme}.` : undefined}>
+            <SegmentedControl aria-label="Theme" size="small" value={preferences.theme} onChange={value => update({ theme: value as "browser" | "light" | "dark" })}>
+                <SegmentedControl.Item id="browser"><Monitor />Browser</SegmentedControl.Item>
+                <SegmentedControl.Item id="light"><Sun />Light</SegmentedControl.Item>
+                <SegmentedControl.Item id="dark"><Moon />Dark</SegmentedControl.Item>
+            </SegmentedControl>
         </Row>
-        <Row label="Animations" description={`Now ${preferences.animations ? "on" : "off"}.`}>
-            <Flex gap="xsmall" wrap>
-                <Button size="small" onPress={() => update({ animations: "desktop" })}><Monitor />Follow browser</Button>
-                <Button size="small" onPress={() => update({ animations: true })}>On</Button>
-                <Button size="small" onPress={() => update({ animations: false })}>Off</Button>
-            </Flex>
+        <Row label="Animations" description={preferences.animations === "browser" ? `Follows the browser, now ${resolved.animations ? "on" : "off"}.` : undefined}>
+            <SegmentedControl aria-label="Animations" size="small" value={String(preferences.animations)}
+                onChange={value => update({ animations: value === "browser" ? "browser" : value === "true" })}>
+                <SegmentedControl.Item id="browser"><Monitor />Browser</SegmentedControl.Item>
+                <SegmentedControl.Item id="true">On</SegmentedControl.Item>
+                <SegmentedControl.Item id="false">Off</SegmentedControl.Item>
+            </SegmentedControl>
         </Row>
         {!compact && <Row label="Scale" description={`Now ${Math.round(preferences.scale * 100)}%.`}>
             <Slider key={preferences.scale} aria-label="Scale" size="small" defaultValue={preferences.scale} style={{ width: "12rem" }}

@@ -1,4 +1,4 @@
-import { DesktopProvider, SystemProvider, useDesktopPreferences, useSystemAppearance } from "@phreshos/react"
+import { DesktopProvider, SystemProvider, useResolvedDesktopPreferences, useSystemAppearance } from "@phreshos/react"
 import { desktop, system } from "@phreshos/client"
 import { DocumentTheme, Loading, UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
@@ -22,7 +22,7 @@ export default function View() {
 
 function ResolvedView() {
     const appearance = useSystemAppearance()
-    const preferences = useDesktopPreferences()
+    const preferences = useResolvedDesktopPreferences()
     const application = useMemo(() => new Application(), [])
 
     return <UIProvider appearance={appearance} preferences={preferences}>

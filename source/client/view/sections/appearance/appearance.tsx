@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { Theme } from "@phreshos/core"
-import { useDesktopPreferences } from "@phreshos/react"
+import { useResolvedDesktopPreferences } from "@phreshos/react"
 import { AppLayout, SegmentedControl } from "@phreshos/react-ui"
 import { Page, SectionHeader } from "../../components/section-parts"
 import { useArrival } from "../../components/arrival"
@@ -48,7 +48,7 @@ export default function Appearance({ rest }: Readonly<{ rest: string | null }>) 
 
 /** One page of the System Appearance, edited in the shared draft and saved for every Desktop. */
 function SystemAppearance({ page }: Readonly<{ page: SettingsPage }>) {
-    const [theme, setTheme] = useState<Theme>(useDesktopPreferences().theme)
+    const [theme, setTheme] = useState<Theme>(useResolvedDesktopPreferences().theme)
     // The Appearance is already held by the window, so this page has nothing more to wait for.
     useArrival(true)
 
