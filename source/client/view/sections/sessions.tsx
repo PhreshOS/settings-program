@@ -49,10 +49,10 @@ export default function Sessions() {
                     <Table.Column id="end" style={{ width: space.xlarge * 5 }}> </Table.Column>
                 </Table.Header>
                 <Table.Body>
-                    {sessions.map(({ session, connections, lastActiveAt }) => <Table.Row key={session.identity} id={session.identity} textValue={session.identity}>
+                    {sessions.map(({ session, connections, lastActiveAt }) => <Table.Row key={session.identity} id={session.identity} textValue={session.device ?? session.identity}>
                         <Table.Cell>
                             <span style={{ display: "flex", alignItems: "center", gap: space.small, minWidth: 0 }}>
-                                <span className="mono truncate">{session.identity}</span>
+                                <span className="truncate">{session.device ?? "Unknown browser"}</span>
                                 {session.identity === current && <Badge size="xsmall" color="success">This browser</Badge>}
                             </span>
                         </Table.Cell>
