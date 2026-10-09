@@ -122,9 +122,11 @@ function Credentials({ state, requirements, onChanged, onProblem }: Readonly<{
         } catch (error) { onProblem(error instanceof Error ? `Could not change. ${error.message}` : "Could not change."); throw error }
     })
     const name = username ?? state.username ?? ""
+    const characters = (count: number) => `${count} ${count === 1 ? "character" : "characters"}`
+    // A field says what it lacks once something is typed in it, not before.
     const problem = repeated && password !== repeated ? "The passwords differ."
-        : password && password.length < requirements.password.minimumLength ? `A password needs at least ${requirements.password.minimumLength} characters.`
-        : name.length < requirements.username.minimumLength ? `A username needs at least ${requirements.username.minimumLength} characters.`
+        : password && password.length < requirements.password.minimumLength ? `A password needs at least ${characters(requirements.password.minimumLength)}.`
+        : (username !== null || password) && name.length < requirements.username.minimumLength ? `A username needs at least ${characters(requirements.username.minimumLength)}.`
         : null
 
     function submit(event: FormEvent) {
