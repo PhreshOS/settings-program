@@ -23,7 +23,7 @@ export default function Defaults() {
     const application = useApplication()
     const space = useScale(useAppearance().spacing)
     const read = useRead(async () => {
-        const [programs, defaults] = await Promise.all([application.programs(), application.openingDefaults()])
+        const [programs, defaults] = await Promise.all([application.installed(), application.openingDefaults()])
         return { programs, defaults }
     }, [], change => {
         const stops = [application.followPrograms(change), application.followOpeningDefaults(change)]
@@ -41,11 +41,11 @@ export default function Defaults() {
 
     const programs = read.value?.programs ?? []
     const defaults = read.value?.defaults ?? {}
-    const declared = programs.flatMap(entry => entry.definition.opens ?? [])
+    const declared = programs.flatMap(program => program.opens)
     // Each family comes first, followed by its own exact types.
     const types = [...new Set([...declared, ...Object.keys(defaults)])]
         .sort((a, b) => family(a).localeCompare(family(b)) || Number(!a.endsWith("/*")) - Number(!b.endsWith("/*")) || a.localeCompare(b))
-    const opener = (type: string) => programs.filter(entry => opensType(entry.definition.opens ?? [], type))
+    const opener = (type: string) => programs.filter(program => opensType(program.opens, type))
     // What an exact type without its own default does: its family's default, or ask.
     const fallback = (type: string) => {
         const program = type.endsWith("/*") ? undefined : defaults[family(type)]
@@ -69,11 +69,11 @@ export default function Defaults() {
                                 <Select aria-label={`Opens ${type} with`} size="small" value={defaults[type]?.identity ?? ask} disabled={choosing.isPending}
                                     onChange={value => {
                                         if (value === null) return
-                                        const chosen = value === ask ? null : opener(type).find(entry => entry.program.identity === value)?.program
+                                        const chosen = value === ask ? null : opener(type).find(program => program.identity === value)
                                         if (chosen !== undefined) void choosing.safeExecute(type, chosen)
                                     }}>
                                     <Select.Item id={ask}>{fallback(type)}</Select.Item>
-                                    {opener(type).map(entry => <Select.Item key={entry.program.identity} id={entry.program.identity}>{entry.program.name}</Select.Item>)}
+                                    {opener(type).map(program => <Select.Item key={program.identity} id={program.identity}>{program.name}</Select.Item>)}
                                 </Select>
                             </Table.Cell>
                         </Table.Row>)}

@@ -32,7 +32,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
     const application = useApplication()
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
-    const { program, definition, startup, pinned } = details
+    const { program, startup, pinned } = details
     const act = usePromise(async (operation: () => Promise<unknown>) => {
         try { await operation(); onChange() }
         catch (error) { onProblem(error); throw error }
@@ -67,10 +67,10 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
             </Row>
         </Group>
 
-        {!!definition.opens?.length && <Group title="Opens" aside={<Button size="small" depth="none" onPress={() => go("defaults")}>Defaults</Button>}>
+        {!!program.opens.length && <Group title="Opens" aside={<Button size="small" depth="none" onPress={() => go("defaults")}>Defaults</Button>}>
             <div style={{ padding: space.medium }}>
                 <TagGroup aria-label="What it opens" size="small">
-                    {definition.opens.map(type => <TagGroup.Tag key={type} id={type}><span className="mono">{type}</span></TagGroup.Tag>)}
+                    {program.opens.map(type => <TagGroup.Tag key={type} id={type}><span className="mono">{type}</span></TagGroup.Tag>)}
                 </TagGroup>
             </div>
         </Group>}
@@ -84,8 +84,8 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
  */
 function Permissions({ details, busy, run }: Readonly<{ details: ProgramDetails, busy: boolean, run: (operation: () => Promise<unknown>) => void }>) {
     const application = useApplication()
-    const { program, definition, permissions } = details
-    const declared = definition.permissions ?? {}
+    const { program, permissions } = details
+    const declared = program.declaredPermissions
     const names = (Object.keys(programPermissionCatalog) as PermissionName[])
         .filter(name => name in declared || (permissions[name] !== undefined && permissions[name] !== null))
 

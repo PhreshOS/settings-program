@@ -24,8 +24,8 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
     const space = useScale(useAppearance().spacing)
     const terms = query.trim().toLowerCase()
     const all = programs.value ?? []
-    const shown = all.filter(({ program, definition }) => !terms
-        || [program.name, program.identity, ...definition.categories ?? [], ...definition.keywords ?? []].some(text => text.toLowerCase().includes(terms)))
+    const shown = all.filter(({ program }) => !terms
+        || [program.name, program.identity, ...program.categories, ...program.keywords].some(text => text.toLowerCase().includes(terms)))
     const starting = all.filter(entry => entry.startup !== null).length
 
     return <>
@@ -45,7 +45,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
                         <Table.Column id="startup" style={{ width: space.xlarge * 4 }}>Startup</Table.Column>
                     </Table.Header>
                     <Table.Body>
-                        {shown.map(({ program, definition, permissions, startup }) => <Table.Row key={program.identity} id={program.identity} textValue={program.name}>
+                        {shown.map(({ program, permissions, startup }) => <Table.Row key={program.identity} id={program.identity} textValue={program.name}>
                             <Table.Cell>
                                 <span style={{ display: "flex", alignItems: "center", gap: space.small, minWidth: 0 }} title={program.description ?? undefined}>
                                     <Icon of={program} size={space.medium * 1.5} />
@@ -53,7 +53,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
                                 </span>
                             </Table.Cell>
                             <Table.Cell><Text tone="secondary" className="tabular">{program.version}</Text></Table.Cell>
-                            {!narrow && <Table.Cell><Text tone="secondary">{definition.categories?.[0] ?? "Other"}</Text></Table.Cell>}
+                            {!narrow && <Table.Cell><Text tone="secondary">{program.categories[0] ?? "Other"}</Text></Table.Cell>}
                             {!narrow && <Table.Cell><span className="truncate" style={{ display: "block" }} title={granted(permissions)}><Text tone="secondary">{granted(permissions)}</Text></span></Table.Cell>}
                             <Table.Cell>{startup && <Badge size="xsmall" color="success" dot>{startup.name ?? "Starts"}</Badge>}</Table.Cell>
                         </Table.Row>)}

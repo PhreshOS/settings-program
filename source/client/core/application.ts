@@ -1,13 +1,12 @@
 import { desktop, system } from "@phreshos/client"
 import type {
     Appearance, AuthenticationCredentials, Connection, DesktopPreferencesUpdate, IconSize, Launch, PermissionName, PermissionRequestInput,
-    Permissions, Program, ProgramDefinition, Session, SystemLogRecord
+    Permissions, Program, Session, SystemLogRecord
 } from "@phreshos/core"
 
 /** An installed Program with what Settings shows and changes about it. */
 export type ProgramDetails = Readonly<{
     program: Program
-    definition: ProgramDefinition
     permissions: Permissions
     startup: Launch | null
     pinned: boolean
@@ -78,10 +77,10 @@ export default class Application {
     }
 
     public async program(program: Program): Promise<ProgramDetails> {
-        const [definition, permissions, startup, pinned] = await Promise.all([
-            program.definition(), program.permissions.all(), program.startup.get(), program.pinned()
+        const [permissions, startup, pinned] = await Promise.all([
+            program.permissions.all(), program.startup.get(), program.pinned()
         ])
-        return { program, definition, permissions, startup, pinned }
+        return { program, permissions, startup, pinned }
     }
 
     /** Calls `change` whenever the installed Programs, or what Settings shows about them, change. */
@@ -123,6 +122,11 @@ export default class Application {
 
     public removeStartup(program: Program) {
         return program.startup.remove()
+    }
+
+    /** The installed Programs, as they are; what they open comes with them. */
+    public installed() {
+        return system.program.list({ installed: true })
     }
 
     /** The default Program of each media type and family. */
