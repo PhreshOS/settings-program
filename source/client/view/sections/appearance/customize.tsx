@@ -7,7 +7,7 @@ import { sameAppearance } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
 import { useFrame } from "../../settings/frame"
-import { Group, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
+import { Group, Page, Row, SectionFooter, SectionHeader } from "../../components/section-parts"
 import { useLibrary } from "./library"
 import SaveDialog from "./save-dialog"
 import { wallpaperFiles, wallpaperSource } from "./wallpaper"
@@ -86,7 +86,7 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
             <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
         </SectionHeader>
         <AppLayout.Content>
-            <Flex direction="column" gap="large">
+            <Page>
                 <Grid columns="repeat(auto-fit, minmax(min(22rem, 100%), 1fr))" gap="large" style={{ alignItems: "start" }}>
                     <Flex direction="column" gap="large">
                         <Group title="Colors" aside={<Columns />}>
@@ -153,7 +153,7 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                         </Group>
                     </Flex>
                 </Grid>
-            </Flex>
+            </Page>
         </AppLayout.Content>
         <SectionFooter status={problem ?? "In use on every Desktop as you change it"} problem={problem !== null} />
         <SaveDialog open={saving} name={edited?.name} onClose={() => setSaving(false)}
