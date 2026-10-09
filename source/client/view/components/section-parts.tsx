@@ -74,7 +74,8 @@ export function Row({ label, description, children }: Readonly<{ label: ReactNod
 /** A section's content: its groups stacked, as wide as reads well. */
 export function Page({ children, wide = false }: Readonly<{ children: ReactNode, wide?: boolean }>) {
     const space = useScale(useAppearance().spacing)
-    return <div style={{ display: "grid", gap: space.xlarge, alignContent: "start", maxWidth: wide ? undefined : "48rem" }}>{children}</div>
+    // A page narrower than the content stands in its middle.
+    return <div style={{ display: "grid", gap: space.xlarge, alignContent: "start", width: "100%", maxWidth: wide ? undefined : "48rem", marginInline: "auto" }}>{children}</div>
 }
 
 /** Fields inside a Group, as many side by side as the width allows. */
@@ -83,7 +84,7 @@ export function Fields({ children }: Readonly<{ children: ReactNode }>) {
     return <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(14rem, 100%), 1fr))", gap: `${space.large}px ${space.xlarge}px`, padding: space.medium }}>{children}</div>
 }
 
-/** A quiet line where a list has nothing to show, as Files says an empty folder or an unmatched search. */
+/** A quiet line where a list has nothing to show, in the middle of the content, as Files says an empty folder. */
 export function Empty({ children }: Readonly<{ children: ReactNode }>) {
-    return <Text tone="secondary" size="small" style={{ display: "block", padding: "3rem 1rem", textAlign: "center" }}>{children}</Text>
+    return <AppLayout.Placeholder><Text tone="secondary" size="small">{children}</Text></AppLayout.Placeholder>
 }

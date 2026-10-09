@@ -35,7 +35,7 @@ export default function Overview() {
                     </Flex>
                 </Surface>
 
-                <GridList aria-label="At a glance" selectionMode="none" restColor="primary:subtle" itemWidth={space.xlarge * 5}
+                <GridList aria-label="At a glance" selectionMode="none" restColor="primary:subtle" itemWidth={space.xlarge * 5} stretch
                     // Running Processes are listed with their Programs, Sessions in Authentication.
                     onAction={key => frame.go(key === "running" ? "programs" : key === "sessions" ? "authentication" : String(key))}>
                     <Count id="programs" icon={LayoutGrid} value={glance.programs} label={glance.programs === 1 ? "Program installed" : "Programs installed"} />
