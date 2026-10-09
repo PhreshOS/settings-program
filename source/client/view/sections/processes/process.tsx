@@ -35,7 +35,7 @@ export default function ProcessView({ identity }: Readonly<{ identity: string }>
 function ProcessPage({ details }: Readonly<{ details: Details }>) {
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
-    const { process, program, parent, options, installed, server, client } = details
+    const { process, program, parent, options, opened, installed, server, client } = details
     const given = Object.entries(options)
 
     return <Page>
@@ -58,6 +58,9 @@ function ProcessPage({ details }: Readonly<{ details: Details }>) {
             <Row label="Started by" description={parent ? "The Process that created this one." : "It was not started by another Process."}>
                 {parent && <Button size="small" depth="none" onPress={() => go(`processes/${parent.identity}`)}>{parent.name ?? parent.identity}</Button>}
             </Row>
+            {opened && <Row label="Opened" description={`What it was started to open: ${opened.type}.`}>
+                <Text tone="secondary" size="small" className="mono" truncate title={opened.uri} style={{ maxWidth: "60%" }}>{opened.uri}</Text>
+            </Row>}
             {!!given.length && <Row label="Options" description="The values it was started with.">
                 <Flex direction="column" align="end">
                     {given.map(([name, value]) => <Text key={name} tone="secondary" size="small" className="mono">{name}={String(value)}</Text>)}
