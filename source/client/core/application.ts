@@ -1,6 +1,6 @@
 import { desktop, system } from "@phreshos/client"
 import type {
-    Appearance, AuthenticationCredentials, Connection, DesktopPreferencesUpdate, IconSize, Launch, PermissionName, PermissionRequestInput,
+    AppearanceUpdate, AuthenticationCredentials, Connection, DesktopPreferencesUpdate, IconSize, Launch, PermissionName, PermissionRequestInput,
     Permissions, Program, Session, SystemLogRecord
 } from "@phreshos/core"
 
@@ -59,7 +59,8 @@ export default class Application {
         return system.icon(size)
     }
 
-    public updateAppearance(appearance: Appearance) {
+    /** Changes part of the System Appearance; what is left out stays as it is. */
+    public updateAppearance(appearance: AppearanceUpdate) {
         return system.appearance.update(appearance)
     }
 
@@ -69,6 +70,12 @@ export default class Application {
 
     public async upload(file: File) {
         return (await system.uploads.write(file)).file
+    }
+
+    /** Uploads one of Settings' own files, such as a ready wallpaper, and returns its address. */
+    public async uploadAsset(url: string, name: string) {
+        const blob = await (await fetch(url)).blob()
+        return this.upload(new File([blob], name, { type: blob.type }))
     }
 
     /** Every installed Program, by name. */

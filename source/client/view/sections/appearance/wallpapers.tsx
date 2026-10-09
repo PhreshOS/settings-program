@@ -1,65 +1,94 @@
-import type { Theme } from "@phreshos/core"
-import { Button, DropZone, FileTrigger, Flex, Grid, Text } from "@phreshos/react-ui"
-import { ImageUp, X } from "@phreshos/react-ui/icons"
+import { useSystemAppearance, useProgramStore } from "@phreshos/react"
+import { Button, FileTrigger, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { ImageUp } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../../application"
-import ErrorAlert from "../../components/error-alert"
 import { Group } from "../../components/section-parts"
-import { useAppearanceDraft } from "./draft"
+import meadowLight from "./wallpapers/meadow-light.svg"
+import meadowDark from "./wallpapers/meadow-dark.svg"
+import duneLight from "./wallpapers/dune-light.svg"
+import duneDark from "./wallpapers/dune-dark.svg"
+import tideLight from "./wallpapers/tide-light.svg"
+import tideDark from "./wallpapers/tide-dark.svg"
+import plainLight from "./wallpapers/plain-light.svg"
+import plainDark from "./wallpapers/plain-dark.svg"
 
 // Images, videos, and offline HTML documents can all be a wallpaper.
-const accept = ["image/*", "video/mp4", "video/ogg", "video/webm", "text/html"] as const
+const accept = ["image/*", "video/mp4", "video/ogg", "video/webm", "text/html"]
 
-type Slot = "signInWallpaper" | "desktopWallpaper"
+type Pair = Readonly<{ light: string | null, dark: string | null }>
+type Ready = Readonly<{ id: string, name: string, light: string, dark: string }>
+
+/** The release's own wallpaper is no wallpaper at all: the Desktop draws it. */
+const release = "sprout"
+
+const ready: readonly Ready[] = [
+    { id: "meadow", name: "Meadow", light: meadowLight, dark: meadowDark },
+    { id: "dune", name: "Dune", light: duneLight, dark: duneDark },
+    { id: "tide", name: "Tide", light: tideLight, dark: tideDark },
+    { id: "plain", name: "Plain", light: plainLight, dark: plainDark }
+]
 
 /**
- * What stands behind the Desktop and behind the sign-in screen, in light and in dark: all four at
- * once, since a light wallpaper and its dark one are chosen as a pair.
+ * What stands behind the windows and the sign-in screen, in light and dark. A ready one is
+ * uploaded to the System once, the first time it is chosen, and its addresses are kept to tell it
+ * in use again; a file of the owner's own stands in both.
  */
-export default function Wallpapers() {
-    return <>
-        <Group title="Desktop" description="Behind the windows: an image, a video, or an HTML page. Without one, the release's own wallpaper stands there.">
-            <Pair slot="desktopWallpaper" title="Desktop" />
-        </Group>
-        <Group title="Sign-in screen" description="Behind the sign-in form, before anyone signs in: an image, a video, or an HTML page.">
-            <Pair slot="signInWallpaper" title="Sign-in screen" />
-        </Group>
-    </>
-}
-
-/** One place's wallpaper in both themes, side by side. */
-function Pair({ slot, title }: Readonly<{ slot: Slot, title: string }>) {
-    return <Grid columns="repeat(auto-fit, minmax(min(14rem, 100%), 1fr))" gap="medium" style={{ padding: "0.75rem" }}>
-        <Wallpaper slot={slot} title={`${title}, light`} theme="light" />
-        <Wallpaper slot={slot} title={`${title}, dark`} theme="dark" />
-    </Grid>
-}
-
-function Wallpaper({ slot, title, theme }: Readonly<{ slot: Slot, title: string, theme: Theme }>) {
+export default function Wallpapers({ onProblem }: Readonly<{ onProblem: (problem: string | null) => void }>) {
     const application = useApplication()
-    const { draft, change } = useAppearanceDraft()
-    const value = draft[slot][theme] ?? null
-    const uploading = usePromise((file: File) => application.upload(file))
+    const appearance = useSystemAppearance()
+    const space = useScale(useAppearance().spacing)
+    const [uploaded, setUploaded] = useProgramStore<Readonly<Record<string, Pair>>>("wallpapers", {})
+    const current: Pair = { light: appearance.desktopWallpaper.light ?? null, dark: appearance.desktopWallpaper.dark ?? null }
+    const inUse = current.light === null && current.dark === null ? release
+        : ready.find(paper => uploaded?.[paper.id]?.light === current.light && uploaded?.[paper.id]?.dark === current.dark)?.id ?? null
 
-    async function choose(files: File[]) {
-        const [file] = files
-        if (!file) return
-        const key = await uploading.safeExecute(file)
-        if (key) change(slot, { ...draft[slot], [theme]: key })
+    const choosing = usePromise(async (pair: Pair) => {
+        try {
+            await application.updateAppearance({ desktopWallpaper: pair, signInWallpaper: pair })
+            onProblem(null)
+        } catch (error) { onProblem(error instanceof Error ? error.message : "The wallpaper could not be applied."); throw error }
+    })
+
+    async function choose(id: string) {
+        if (id === release) return choosing.safeExecute({ light: null, dark: null })
+        const paper = ready.find(entry => entry.id === id)!
+        let pair = uploaded?.[id]
+        if (!pair) {
+            const [light, dark] = await Promise.all([
+                application.uploadAsset(paper.light, `${id}-light.svg`),
+                application.uploadAsset(paper.dark, `${id}-dark.svg`)
+            ])
+            pair = { light, dark }
+            await setUploaded(previous => ({ ...previous, [id]: pair! }))
+        }
+        return choosing.safeExecute(pair)
     }
 
-    return <Flex direction="column" gap="small">
-        <DropZone aria-label={`${title} wallpaper`} accept={accept} disabled={uploading.isPending} onDrop={files => void choose(files)}>
-            <ImageUp size={22} />
-            <Text size="small">{title}</Text>
-            <Text size="xsmall" tone="secondary" style={{ overflowWrap: "anywhere" }}>{uploading.isPending ? "Uploading…" : value ?? "The release's wallpaper"}</Text>
-            <Flex gap="small" justify="center">
-                <FileTrigger accept={accept} onSelect={files => void choose(files)}>
-                    <Button size="small" pending={uploading.isPending}>{value ? "Replace" : "Choose"}</Button>
-                </FileTrigger>
-                {value && <Button size="small" onPress={() => change(slot, { ...draft[slot], [theme]: null })}><X />Clear</Button>}
-            </Flex>
-        </DropZone>
-        {uploading.exception && <ErrorAlert title="Could not upload" error={uploading.exception.current} />}
-    </Flex>
+    async function own(files: File[]) {
+        const [file] = files
+        if (!file) return
+        const address = await application.upload(file)
+        await choosing.safeExecute({ light: address, dark: address })
+    }
+
+    return <Group title="Wallpaper" description={inUse === null ? "A file of your own is in use, light and dark." : "Light and dark, behind the windows and the sign-in screen."}
+        aside={<FileTrigger accept={accept} onSelect={files => void own(files)}><Button size="small" pending={choosing.isPending}><ImageUp />Your own…</Button></FileTrigger>}>
+        <GridList aria-label="Wallpapers" selectionMode="single" itemWidth={space.xlarge * 6} value={inUse} style={{ padding: space.small }}
+            onChange={id => { if (id) void choose(id) }}>
+            <GridList.Item id={release} textValue="Sprout">
+                <div aria-hidden="true" style={{ display: "grid", placeItems: "center", height: "3.5rem", borderRadius: "0.5rem", background: "color-mix(in oklab, currentColor 6%, transparent)" }}>
+                    <Text size="xsmall" tone="secondary">The release's own</Text>
+                </div>
+                <Text size="small" style={{ fontWeight: 600 }}>Sprout</Text>
+            </GridList.Item>
+            {ready.map(paper => <GridList.Item key={paper.id} id={paper.id} textValue={paper.name}>
+                <div aria-hidden="true" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "3.5rem", borderRadius: "0.5rem", overflow: "hidden" }}>
+                    <img src={paper.light} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={paper.dark} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <Text size="small" style={{ fontWeight: 600 }}>{paper.name}</Text>
+            </GridList.Item>)}
+        </GridList>
+    </Group>
 }

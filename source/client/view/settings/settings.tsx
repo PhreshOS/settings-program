@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react"
 import { AppLayout, Text, Tree, useAppLayout, useAppearance, useScale } from "@phreshos/react-ui"
-import { AppearanceDraftProvider } from "../sections/appearance/draft"
 import { FrameContext } from "./frame"
 import { sections } from "./sections"
 import type { SettingsSection } from "./section"
@@ -10,8 +9,7 @@ type Location = Readonly<{ section: SettingsSection, rest: string | null }>
 /**
  * The Settings frame, laid out as Files is: the name above the sections, grouped in the sidebar,
  * and the chosen section beside them drawing its header, content, and status line. A narrow window
- * keeps the sections in the layout's drawer, one press away. The Appearance draft wraps the whole
- * frame, so unsaved changes stay while the owner looks elsewhere.
+ * keeps the sections in the layout's drawer, one press away.
  */
 export default function Settings() {
     const space = useScale(useAppearance().spacing)
@@ -34,13 +32,11 @@ export default function Settings() {
     const go = (address: string) => setLocation(locate(address))
 
     return <FrameContext.Provider value={{ go }}>
-        <AppearanceDraftProvider>
             <AppLayout style={{ padding: space.medium, paddingTop: space.small }}>
                 <AppLayout.Title style={{ paddingInline: space.small, fontSize: "1.25rem" }}>Settings</AppLayout.Title>
                 <AppLayout.Sidebar aria-label="Sections"><Navigation chosen={chosen} go={go} /></AppLayout.Sidebar>
                 <section.View key={section.id} rest={rest} />
             </AppLayout>
-        </AppearanceDraftProvider>
     </FrameContext.Provider>
 }
 

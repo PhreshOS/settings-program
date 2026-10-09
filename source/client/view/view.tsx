@@ -1,5 +1,5 @@
-import { DesktopProvider, SystemProvider, useResolvedDesktopPreferences, useSystemAppearance } from "@phreshos/react"
-import { desktop, system } from "@phreshos/client"
+import { ContextProvider, DesktopProvider, SystemProvider, useResolvedDesktopPreferences, useSystemAppearance } from "@phreshos/react"
+import { context, desktop, system } from "@phreshos/client"
 import { DocumentTheme, Loading, UIProvider } from "@phreshos/react-ui"
 import Application from "@client/core/application"
 import { useMemo } from "react"
@@ -15,7 +15,10 @@ import "./style.css"
 export default function View() {
     return <SystemProvider system={system}>
         <DesktopProvider desktop={desktop}>
-            <ResolvedView />
+            {/* Its own store keeps the owner's themes. */}
+            <ContextProvider context={context}>
+                <ResolvedView />
+            </ContextProvider>
         </DesktopProvider>
     </SystemProvider>
 }

@@ -4,8 +4,9 @@ import { defaultAppearance, type Appearance, type AppearanceColors, type Appeara
 export type Look = Pick<Appearance, "colors" | "spacing" | "radius" | "shadow" | "material" | "tempo">
 
 /**
- * A ready look the owner can start from. Themes belong to Settings alone: the System knows one
- * Appearance, and a theme only fills Settings' draft of it, which is saved like any other change.
+ * A look the owner can choose. Themes belong to Settings alone: the System knows one Appearance,
+ * and choosing a theme writes its look into it. The ready ones come with Settings; the owner's
+ * own are kept in Settings' store.
  */
 export type SettingsTheme = Readonly<{
     id: string
@@ -13,6 +14,9 @@ export type SettingsTheme = Readonly<{
     description: string
     look: Look
 }>
+
+/** A theme the owner made, kept in Settings' store. */
+export type CustomTheme = SettingsTheme & Readonly<{ custom: true }>
 
 const base: Look = {
     colors: defaultAppearance.colors,
@@ -54,14 +58,26 @@ export const themes: readonly SettingsTheme[] = [
     }
 ]
 
-/** The Appearance with a theme's look over it. */
-export function applyTheme(appearance: Appearance, theme: SettingsTheme): Appearance {
-    return { ...appearance, ...theme.look }
+/** The look an Appearance has. */
+export function lookOf(appearance: Appearance): Look {
+    return { colors: appearance.colors, spacing: appearance.spacing, radius: appearance.radius, shadow: appearance.shadow, material: appearance.material, tempo: appearance.tempo }
 }
 
-/** The theme whose look the Appearance has exactly, or `null` once anything differs. */
-export function themeOf(appearance: Appearance): SettingsTheme | null {
-    return themes.find(theme => (Object.keys(theme.look) as (keyof Look)[]).every(key => same(appearance[key], theme.look[key]))) ?? null
+/** The theme whose look the Appearance has exactly, among these, or `null` once anything differs. */
+export function themeOf(appearance: Appearance, among: readonly SettingsTheme[] = themes): SettingsTheme | null {
+    return among.find(theme => sameLook(lookOf(appearance), theme.look)) ?? null
+}
+
+/** Whether two looks are the same. */
+export function sameLook(first: Look, second: Look) {
+    return (Object.keys(first) as (keyof Look)[]).every(key => same(first[key], second[key]))
+}
+
+/** A new name, unused among these themes: the name itself, else it numbered. */
+export function freeName(name: string, among: readonly SettingsTheme[]) {
+    const taken = new Set(among.map(theme => theme.name))
+    if (!taken.has(name)) return name
+    for (let number = 2; ; number++) if (!taken.has(`${name} ${number}`)) return `${name} ${number}`
 }
 
 /** Equal values, whatever order their keys were written in. */
