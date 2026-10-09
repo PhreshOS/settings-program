@@ -3,6 +3,7 @@ import type { SystemLogLevel, SystemLogRecord } from "@phreshos/core"
 import { AppLayout, Badge, SearchField, SegmentedControl, Table, Text, useAppearance, useScale, ScrollArea } from "@phreshos/react-ui"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
+import LogLine from "../components/log-line"
 import { SectionFooter, SectionHeader, Empty } from "../components/section-parts"
 
 /** How many records the page holds: the newest ones, and those that arrive while it is open. */
@@ -50,7 +51,7 @@ export default function Logs() {
                         {records.map((record, index) => <Table.Row key={`${record.createdAt}-${index}`} id={`${record.createdAt}-${index}`} textValue={record.content}>
                             <Table.Cell><Text tone="secondary" size="small" className="tabular">{time(record.createdAt)}</Text></Table.Cell>
                             <Table.Cell><Badge size="xsmall" color={colors[record.level]}>{record.level}</Badge></Table.Cell>
-                            <Table.Cell><span className="log-content" title={`${record.source} · ${record.kind}`}>{record.content}</span></Table.Cell>
+                            <Table.Cell><LogLine content={record.content} /></Table.Cell>
                         </Table.Row>)}
                     </Table.Body>
                 </Table></ScrollArea>}</ReadView>

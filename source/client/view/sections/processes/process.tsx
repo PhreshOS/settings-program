@@ -4,6 +4,7 @@ import { AppLayout, Badge, Button, Flex, Table, Text, useAppearance, useScale, S
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
 import { ReadView, useRead } from "../../components/read"
+import LogLine from "../../components/log-line"
 import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { ago } from "../overview"
@@ -104,7 +105,7 @@ function Output({ process }: Readonly<{ process: Process }>) {
                     {lines.map((line, index) => <Table.Row key={`${line.createdAt}-${index}`} id={`${line.createdAt}-${index}`} textValue={line.content}>
                         <Table.Cell><Text tone="secondary" size="small" className="tabular">{new Date(line.createdAt).toLocaleTimeString()}</Text></Table.Cell>
                         <Table.Cell><Badge size="xsmall" color={line.kind === "error" || line.kind === "stderr" ? "danger" : line.kind === "warn" ? "warning" : undefined}>{line.source}</Badge></Table.Cell>
-                        <Table.Cell><span className="log-content" title={line.kind}>{line.content}</span></Table.Cell>
+                        <Table.Cell><LogLine content={line.content} /></Table.Cell>
                     </Table.Row>)}
                 </Table.Body>
             </Table></ScrollArea>}

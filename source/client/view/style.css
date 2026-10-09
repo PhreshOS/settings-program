@@ -28,5 +28,5 @@ body {
 .row + .row { border-top: 1px solid color-mix(in oklab, currentColor 9%, transparent); }
 
 /* A log record's text keeps its own spacing and wraps anywhere. */
-.log-content { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.log-content { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125em; }
