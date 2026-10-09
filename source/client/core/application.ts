@@ -178,6 +178,17 @@ export default class Application {
         return { sessions: details as readonly SessionDetails[], current: current?.identity ?? null }
     }
 
+    /** Every live browser Connection, with the Session it is signed in with, if any. */
+    public async connections() {
+        const connections = await system.authentication.connections()
+        return Promise.all(connections.map(async connection => ({ connection, session: await connection.session() })))
+    }
+
+    /** Signs in a connected browser without a password, such as one the owner approves from here. */
+    public signInConnection(connection: Connection) {
+        return connection.signIn()
+    }
+
     public followSessions(change: () => void) {
         const stops = (["sessionCreate", "sessionEnd", "connectionCreate", "connectionDisconnect"] as const)
             .map(event => system.authentication.subscribe(event, () => change()))

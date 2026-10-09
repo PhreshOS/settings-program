@@ -17,7 +17,7 @@ export default function Display() {
     const updating = useDesktopUpdate()
 
     return <>
-        <SectionHeader title="Desktop" />
+        <SectionHeader title="Preferences" />
         <AppLayout.Content>
             <Page><DesktopPreferences update={updating.update} /></Page>
         </AppLayout.Content>

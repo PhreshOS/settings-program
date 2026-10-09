@@ -36,8 +36,8 @@ export default function Overview() {
                 </Surface>
 
                 <GridList aria-label="At a glance" selectionMode="none" restColor="primary:subtle" itemWidth={space.xlarge * 5}
-                    // Running Processes are listed with their Programs.
-                    onAction={key => frame.go(key === "running" ? "programs" : String(key))}>
+                    // Running Processes are listed with their Programs, Sessions in Authentication.
+                    onAction={key => frame.go(key === "running" ? "programs" : key === "sessions" ? "authentication" : String(key))}>
                     <Count id="programs" icon={LayoutGrid} value={glance.programs} label={glance.programs === 1 ? "Program installed" : "Programs installed"} />
                     <Count id="running" icon={Activity} value={glance.processes} label="Running now" />
                     <Count id="startup" icon={Power} value={glance.startups} label="Start with the System" />
