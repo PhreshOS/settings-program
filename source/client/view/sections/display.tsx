@@ -1,6 +1,6 @@
-import { defaultDesktopScale, desktopPreferencesLimits, type DesktopPreferencesUpdate } from "@phreshos/core"
+import { desktopPreferencesLimits, type DesktopPreferencesUpdate } from "@phreshos/core"
 import { useDesktopPreferences, useResolvedDesktopPreferences } from "@phreshos/react"
-import { AppLayout, Button, SegmentedControl, Slider } from "@phreshos/react-ui"
+import { AppLayout, SegmentedControl, Slider } from "@phreshos/react-ui"
 import { Monitor, Moon, Sun } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../application"
@@ -61,7 +61,6 @@ export function DesktopPreferences({ update, compact = false }: Readonly<{ updat
             <Slider key={preferences.scale} aria-label="Scale" size="small" defaultValue={preferences.scale} style={{ width: "12rem" }}
                 minValue={desktopPreferencesLimits.scale.minimum} maxValue={desktopPreferencesLimits.scale.maximum} step={0.05}
                 formatOptions={{ style: "percent" }} onChangeEnd={scale => update({ scale })} />
-            <Button size="small" onPress={() => update({ scale: defaultDesktopScale })}>Default</Button>
         </Row>}
     </Group>
 }
