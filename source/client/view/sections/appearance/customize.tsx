@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { appearanceLimits, systemWallpapers, wallpaperSizeLimit, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
-import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, Grid, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
 import { sameAppearance } from "@client/core/appearances"
 import { useApplication } from "../../application"
@@ -87,72 +87,66 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
         </SectionHeader>
         <AppLayout.Content>
             <Page>
-                <Grid columns="repeat(auto-fit, minmax(min(22rem, 100%), 1fr))" gap="large" style={{ alignItems: "start" }}>
-                    <Flex direction="column" gap="large">
-                        <Group title="Colors" aside={<Columns />}>
-                            {(Object.keys(colorNames) as AppearanceColor[]).map(role => <Row key={role} label={colorNames[role]}>
-                                {modes.map(mode => <Swatch key={mode} label={`${colorNames[role]}, ${mode}`} value={(draft.colors[mode] ?? draft.colors.light)[role]}
-                                    onChange={value => themed("colors", mode, { [role]: value })} />)}
-                            </Row>)}
-                        </Group>
-                    </Flex>
-                    <Flex direction="column" gap="large">
-                        <Group title="Shape">
-                            <Row label="Spacing" description="Gaps, controls, and headers follow it.">
-                                <Measure label="Spacing" value={draft.spacing} range={appearanceLimits.spacing} onChange={spacing => change({ ...draft, spacing })} />
-                            </Row>
-                            <Row label="Corners">
-                                <Measure label="Corners" value={draft.radius} range={appearanceLimits.radius} onChange={radius => change({ ...draft, radius })} />
-                            </Row>
-                        </Group>
-                        <Group title="Material" description="How every surface lets through what is behind it." aside={<Columns />}>
-                            {(Object.keys(materialNames) as (keyof AppearanceMaterial)[]).map(key => <Row key={key} label={materialNames[key]}>
-                                {modes.map(mode => <Measure key={mode} label={`${materialNames[key]}, ${mode}`} value={(draft.material[mode] ?? draft.material.light)[key]}
-                                    range={appearanceLimits.material[key]} onChange={value => themed("material", mode, { [key]: value })} />)}
-                            </Row>)}
-                        </Group>
-                        <Group title="Shadow" description="Beneath raised surfaces, windows included." aside={<Columns />}>
-                            {(Object.keys(shadowNames) as (keyof AppearanceShadow)[]).map(key => <Row key={key} label={shadowNames[key]}>
-                                {modes.map(mode => <Measure key={mode} label={`Shadow ${shadowNames[key].toLowerCase()}, ${mode}`} value={(draft.shadow[mode] ?? draft.shadow.light)[key]}
-                                    range={appearanceLimits.shadow[key]} onChange={value => themed("shadow", mode, { [key]: value })} />)}
-                            </Row>)}
-                        </Group>
-                        <Group title="Motion">
-                            <Row label="Tempo" description="1 is the designed pace; higher is slower.">
-                                <Measure label="Tempo" value={draft.tempo} range={appearanceLimits.tempo} step={0.05} onChange={tempo => change({ ...draft, tempo })} />
-                            </Row>
-                        </Group>
-                        <Group title="Wallpapers" description="An image, a video, or an offline HTML page, up to 50 MB." aside={<Columns />}>
-                            {(Object.keys(wallpaperNames) as (keyof AppearanceWallpapers)[]).map(place => <Row key={place} label={wallpaperNames[place]}>
-                                {modes.map(mode => <FileTrigger key={mode} accept={wallpaperFiles} onSelect={files => void chooseWallpaper(mode, place, files[0])}>
-                                    <Button size="small" aria-label={`${wallpaperNames[place]} wallpaper, ${mode}`} pending={uploading === `${mode}:${place}`}
-                                        style={{ width: "6.5rem", height: "3.75rem", padding: 0, overflow: "hidden" }}>
-                                        <Thumbnail file={draft.wallpapers[mode][place]} />
-                                    </Button>
-                                </FileTrigger>)}
-                            </Row>)}
-                            <Row label="The System's own" description="Puts back the wallpapers this release comes with.">
-                                <Button size="small" disabled={sameAppearance(draft.wallpapers, systemWallpapers)} onPress={() => change({ ...draft, wallpapers: systemWallpapers })}>Use</Button>
-                            </Row>
-                        </Group>
-                        <Group title="Taskbar">
-                            <Row label="Edge">
-                                <SegmentedControl aria-label="Edge" size="small" value={taskbar.position} onChange={position => change({ ...draft, taskbar: { ...taskbar, position: position as TaskbarPosition } })}>
-                                    <SegmentedControl.Item id="top" aria-label="Top"><PanelTop /></SegmentedControl.Item>
-                                    <SegmentedControl.Item id="left" aria-label="Left"><PanelLeft /></SegmentedControl.Item>
-                                    <SegmentedControl.Item id="bottom" aria-label="Bottom"><PanelBottom /></SegmentedControl.Item>
-                                    <SegmentedControl.Item id="right" aria-label="Right"><PanelRight /></SegmentedControl.Item>
-                                </SegmentedControl>
-                            </Row>
-                            <Row label="Size" description="Its thickness, in pixels.">
-                                <Measure label="Size" value={taskbar.size} range={appearanceLimits.taskbar.size} onChange={size => change({ ...draft, taskbar: { ...taskbar, size } })} />
-                            </Row>
-                            <Row label="Over windows" description="Windows use the whole screen; it appears from its edge.">
-                                <Switch aria-label="Over windows" checked={taskbar.overlay} onChange={overlay => change({ ...draft, taskbar: { ...taskbar, overlay } })} />
-                            </Row>
-                        </Group>
-                    </Flex>
-                </Grid>
+                <Group title="Colors" aside={<Columns />}>
+                    {(Object.keys(colorNames) as AppearanceColor[]).map(role => <Row key={role} label={colorNames[role]}>
+                        {modes.map(mode => <Swatch key={mode} label={`${colorNames[role]}, ${mode}`} value={(draft.colors[mode] ?? draft.colors.light)[role]}
+                            onChange={value => themed("colors", mode, { [role]: value })} />)}
+                    </Row>)}
+                </Group>
+                <Group title="Shape">
+                    <Row label="Spacing" description="Gaps, controls, and headers follow it.">
+                        <Measure label="Spacing" value={draft.spacing} range={appearanceLimits.spacing} onChange={spacing => change({ ...draft, spacing })} />
+                    </Row>
+                    <Row label="Corners">
+                        <Measure label="Corners" value={draft.radius} range={appearanceLimits.radius} onChange={radius => change({ ...draft, radius })} />
+                    </Row>
+                </Group>
+                <Group title="Material" description="How every surface lets through what is behind it." aside={<Columns />}>
+                    {(Object.keys(materialNames) as (keyof AppearanceMaterial)[]).map(key => <Row key={key} label={materialNames[key]}>
+                        {modes.map(mode => <Measure key={mode} label={`${materialNames[key]}, ${mode}`} value={(draft.material[mode] ?? draft.material.light)[key]}
+                            range={appearanceLimits.material[key]} onChange={value => themed("material", mode, { [key]: value })} />)}
+                    </Row>)}
+                </Group>
+                <Group title="Shadow" description="Beneath raised surfaces, windows included." aside={<Columns />}>
+                    {(Object.keys(shadowNames) as (keyof AppearanceShadow)[]).map(key => <Row key={key} label={shadowNames[key]}>
+                        {modes.map(mode => <Measure key={mode} label={`Shadow ${shadowNames[key].toLowerCase()}, ${mode}`} value={(draft.shadow[mode] ?? draft.shadow.light)[key]}
+                            range={appearanceLimits.shadow[key]} onChange={value => themed("shadow", mode, { [key]: value })} />)}
+                    </Row>)}
+                </Group>
+                <Group title="Motion">
+                    <Row label="Tempo" description="1 is the designed pace; higher is slower.">
+                        <Measure label="Tempo" value={draft.tempo} range={appearanceLimits.tempo} step={0.05} onChange={tempo => change({ ...draft, tempo })} />
+                    </Row>
+                </Group>
+                <Group title="Wallpapers" description="An image, a video, or an offline HTML page, up to 50 MB." aside={<Columns />}>
+                    {(Object.keys(wallpaperNames) as (keyof AppearanceWallpapers)[]).map(place => <Row key={place} label={wallpaperNames[place]}>
+                        {modes.map(mode => <FileTrigger key={mode} accept={wallpaperFiles} onSelect={files => void chooseWallpaper(mode, place, files[0])}>
+                            <Button size="small" aria-label={`${wallpaperNames[place]} wallpaper, ${mode}`} pending={uploading === `${mode}:${place}`}
+                                style={{ width: "6.5rem", height: "3.75rem", padding: 0, overflow: "hidden" }}>
+                                <Thumbnail file={draft.wallpapers[mode][place]} />
+                            </Button>
+                        </FileTrigger>)}
+                    </Row>)}
+                    <Row label="The System's own" description="Puts back the wallpapers this release comes with.">
+                        <Button size="small" disabled={sameAppearance(draft.wallpapers, systemWallpapers)} onPress={() => change({ ...draft, wallpapers: systemWallpapers })}>Use</Button>
+                    </Row>
+                </Group>
+                <Group title="Taskbar">
+                    <Row label="Edge">
+                        <SegmentedControl aria-label="Edge" size="small" value={taskbar.position} onChange={position => change({ ...draft, taskbar: { ...taskbar, position: position as TaskbarPosition } })}>
+                            <SegmentedControl.Item id="top" aria-label="Top"><PanelTop /></SegmentedControl.Item>
+                            <SegmentedControl.Item id="left" aria-label="Left"><PanelLeft /></SegmentedControl.Item>
+                            <SegmentedControl.Item id="bottom" aria-label="Bottom"><PanelBottom /></SegmentedControl.Item>
+                            <SegmentedControl.Item id="right" aria-label="Right"><PanelRight /></SegmentedControl.Item>
+                        </SegmentedControl>
+                    </Row>
+                    <Row label="Size" description="Its thickness, in pixels.">
+                        <Measure label="Size" value={taskbar.size} range={appearanceLimits.taskbar.size} onChange={size => change({ ...draft, taskbar: { ...taskbar, size } })} />
+                    </Row>
+                    <Row label="Over windows" description="Windows use the whole screen; it appears from its edge.">
+                        <Switch aria-label="Over windows" checked={taskbar.overlay} onChange={overlay => change({ ...draft, taskbar: { ...taskbar, overlay } })} />
+                    </Row>
+                </Group>
             </Page>
         </AppLayout.Content>
         <SectionFooter status={problem ?? "In use on every Desktop as you change it"} problem={problem !== null} />
