@@ -2,9 +2,6 @@ import { createContext, useContext } from "react"
 
 /** What every section may ask of the frame around it. */
 export type Frame = Readonly<{
-    /** Whether the window is too narrow for the sidebar, which then waits in a drawer. */
-    narrow: boolean
-    showSections: () => void
     /** Opens an address, such as `programs/files`. */
     go: (address: string) => void
 }>

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useScale, useAppLayout } from "@phreshos/react-ui"
 import type { ProgramDetails } from "@client/core/application"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
@@ -20,7 +20,8 @@ export default function Programs({ rest }: Readonly<{ rest: string | null }>) {
 
 function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }>) {
     const [query, setQuery] = useState("")
-    const { go, narrow } = useFrame()
+    const { go } = useFrame()
+    const { narrow } = useAppLayout()
     const space = useScale(useAppearance().spacing)
     const terms = query.trim().toLowerCase()
     const all = programs.value ?? []

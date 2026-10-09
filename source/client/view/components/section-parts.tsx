@@ -1,6 +1,5 @@
 import type { ReactNode } from "react"
 import { AppLayout, Button, Flex, Surface, Text, useAppearance, useColor, useScale } from "@phreshos/react-ui"
-import { PanelLeft } from "@phreshos/react-ui/icons"
 import { useFrame } from "../settings/frame"
 
 /**
@@ -14,10 +13,10 @@ export function SectionHeader({ title, above, children }: Readonly<{
     children?: ReactNode
 }>) {
     const space = useScale(useAppearance().spacing)
-    const { narrow, showSections, go } = useFrame()
+    const { go } = useFrame()
 
     return <AppLayout.Header style={{ paddingInline: space.small, marginBottom: space.small }}>
-        {narrow && <Button iconOnly depth="flat" size="small" aria-label="Sections" onPress={showSections}><PanelLeft /></Button>}
+        <AppLayout.SidebarToggle />
         <Flex align="baseline" gap="small" style={{ flex: "1 1 auto", minWidth: 0 }}>
             {above && <Button depth="none" size="small" onPress={() => go(above.address)} style={{ flex: "none" }}>
                 <Text size="large" tone="secondary">{above.title} ›</Text>
