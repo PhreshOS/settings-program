@@ -1,10 +1,11 @@
 import type { ReactNode } from "react"
-import { AppLayout, Button, Flex, Surface, Text, useAppearance, useColor, useScale } from "@phreshos/react-ui"
+import { AppLayout, Breadcrumbs, Flex, Surface, Text, useAppearance, useColor, useScale } from "@phreshos/react-ui"
 import { useFrame } from "../settings/frame"
 
 /**
- * A section's header: its name, where it is within its section when it is deeper, and its own
- * tools at the end. In a narrow window it starts with the button that shows the sections.
+ * A section's header: where it is, as Files shows a folder's path, and its own tools at the end.
+ * A deeper page lists the steps above it, each one a way back. In a narrow window it starts with the
+ * button that shows the sections.
  */
 export function SectionHeader({ title, above, children }: Readonly<{
     title: ReactNode
@@ -17,12 +18,10 @@ export function SectionHeader({ title, above, children }: Readonly<{
 
     return <AppLayout.Header style={{ paddingInline: space.small, marginBottom: space.small }}>
         <AppLayout.SidebarToggle />
-        <Flex align="baseline" gap="small" style={{ flex: "1 1 auto", minWidth: 0 }}>
-            {above && <Button depth="none" size="small" onPress={() => go(above.address)} style={{ flex: "none" }}>
-                <Text size="large" tone="secondary">{above.title} ›</Text>
-            </Button>}
-            <Text size="xlarge" className="truncate" style={{ fontWeight: 600 }}>{title}</Text>
-        </Flex>
+        <Breadcrumbs size="small" style={{ flex: "1 1 auto", flexWrap: "nowrap", minWidth: 0 }} onAction={key => go(String(key))}>
+            {above && <Breadcrumbs.Item id={above.address}>{above.title}</Breadcrumbs.Item>}
+            <Breadcrumbs.Item id="current">{title}</Breadcrumbs.Item>
+        </Breadcrumbs>
         {children}
     </AppLayout.Header>
 }
