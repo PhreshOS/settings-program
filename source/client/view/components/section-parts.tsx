@@ -74,7 +74,7 @@ export function Group({ title, description, aside, children }: Readonly<{ title:
             </Flex>
             {aside}
         </Flex>
-        <Surface depth="flat" color="default" style={{ display: "grid", minWidth: 0 }}>{children}</Surface>
+        <Surface depth="flat" color="default" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", minWidth: 0 }}>{children}</Surface>
     </Flex>
 }
 
