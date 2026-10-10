@@ -50,6 +50,7 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     const [problem, setProblem] = useState<string | null>(null)
     const [uploading, setUploading] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
+    const [renaming, setRenaming] = useState(false)
     const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // What the System holds replaces the draft, unless a change of this page is still on its way.
@@ -88,6 +89,7 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     return <>
         <SectionHeader title={edited?.name ?? "Customize"} above={{ title: "Appearance", address: "appearance" }}>
             <Button size="small" disabled={!changed} onPress={() => change(origin)}>Revert</Button>
+            {edited && <Button size="small" color="secondary" onPress={() => setRenaming(true)}>Rename</Button>}
             <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
         </SectionHeader>
         <AppLayout.Content>
@@ -155,6 +157,9 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
             </Page>
         </AppLayout.Content>
         <SectionFooter status={problem ?? "In use on every Desktop as you change it"} problem={problem !== null} />
+        {/* Renaming keeps the look as it is saved; only Save keeps the changes. */}
+        {edited && <SaveDialog open={renaming} renaming name={edited.name} onClose={() => setRenaming(false)}
+            onSave={name => void library.replace(edited.id, name, edited.appearance)} />}
         <SaveDialog open={saving} name={edited?.name} onClose={() => setSaving(false)}
             onSave={name => void (edited ? library.replace(edited.id, name, draft) : library.save(name, draft)).then(() => go("appearance"))} />
     </>
