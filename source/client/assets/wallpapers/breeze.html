@@ -14,7 +14,8 @@
 <body>
 <canvas id="field"></canvas>
 <script>
-// A calm field under a low sun: wind passes over the grass in gusts, a few birds glide across.
+// A calm hill under a low sun: wind passes over the grass and its flowers in gusts, clouds drift,
+// and a few birds glide across.
 // By night the sun becomes a moon, the birds rest, and a few fireflies rise from the grass. The
 // Theme comes from the address, ?theme=light or ?theme=dark, as the Desktop opens the page.
 // Light on purpose: at most 30 frames a second, the sky drawn once and kept, blades of one
@@ -28,7 +29,8 @@
     hills: ["#b9c6b4", "#9fb595", "#88a67a"],
     field: ["#9fb377", "#7a9850", "#577a36"],
     grass: [[82, 28, 54], [86, 32, 44], [90, 36, 33]],
-    bird: "rgba(52, 60, 58, 0.62)", star: 0
+    bird: "rgba(52, 60, 58, 0.62)", star: 0,
+    petals: ["#ffffff", "#ffd166", "#ff8fa3", "#c8b6ff", "#ffb38a"], heart: "#f2b544", stem: "#4f7a34", cloud: 0.92
   }
   var NIGHT = {
     sky: ["#060b16", "#0c1729", "#16263c", "#22344a"],
@@ -36,7 +38,8 @@
     hills: ["#1c2a38", "#17242e", "#132026"],
     field: ["#1a2827", "#13211d", "#0c1814"],
     grass: [[150, 14, 19], [142, 18, 15], [134, 22, 11]],
-    bird: "rgba(0, 0, 0, 0)", star: 1
+    bird: "rgba(0, 0, 0, 0)", star: 1,
+    petals: ["#9aa3b8", "#9a9172", "#9a7889", "#8a83a8", "#9a8476"], heart: "#6e6440", stem: "#1e3326", cloud: 0.12
   }
 
   var canvas = document.getElementById("field")
@@ -45,7 +48,7 @@
   var skyCtx = sky.getContext("2d", { alpha: false })
 
   var W = 0, H = 0, DPR = 1, horizon = 0
-  var layers = [], birds = [], fireflies = [], stars = []
+  var layers = [], birds = [], fireflies = [], stars = [], flowers = [], clouds = [], cloudShapes = []
   var birdWait = 4
 
   // The Desktop names the Theme it shows the page in; opened on its own, the page follows the browser.
@@ -69,6 +72,38 @@
     return (Math.sin(u * 2.3 + seed) * 0.5 + Math.sin(u * 5.1 + seed * 2.7) * 0.28 + Math.sin(u * 11.7 + seed * 1.3) * 0.12) * height
   }
 
+  // The near hill: it rises gently toward the left of the field and falls away to the right.
+  function hillAt(x) {
+    var u = x / W
+    return horizon + H * (0.07 - 0.12 * Math.exp(-Math.pow((u - 0.3) / 0.34, 2)) + 0.015 * Math.sin(u * 4.1 + 0.8))
+  }
+  // Where something at a depth from 0 (the crest) to 1 (the foot of the screen) stands at x.
+  function groundAt(x, depth) {
+    var top = hillAt(x)
+    return top + Math.pow(depth, 1.4) * (H - top) + 6
+  }
+
+  // A soft cloud, drawn once from overlapping puffs; each frame only moves it.
+  function cloudShape() {
+    var shape = document.createElement("canvas"), w = 420, h = 150
+    shape.width = w; shape.height = h
+    var g = shape.getContext("2d")
+    // A flat base of low puffs, then a crown of larger ones rising toward the middle, all touching.
+    for (var b = 0; b < 8; b++) {
+      var bx = 70 + b * 40 + random(-6, 6), base = g.createRadialGradient(bx, 108, 0, bx, 108, 34)
+      base.addColorStop(0, "rgba(255,255,255,0.75)"); base.addColorStop(0.6, "rgba(255,255,255,0.45)"); base.addColorStop(1, "rgba(255,255,255,0)")
+      g.fillStyle = base; g.beginPath(); g.arc(bx, 108, 34, 0, 6.283); g.fill()
+    }
+    for (var i = 0; i < 9; i++) {
+      var along = 0.18 + (i / 8) * 0.64 + random(-0.03, 0.03), px = 60 + along * 300, rise = Math.sin(along * Math.PI)
+      var py = 100 - rise * 34 + random(-4, 4), r = random(34, 46) * (0.6 + 0.4 * rise)
+      var puff = g.createRadialGradient(px, py, 0, px, py, r)
+      puff.addColorStop(0, "rgba(255,255,255,0.8)"); puff.addColorStop(0.55, "rgba(255,255,255,0.5)"); puff.addColorStop(1, "rgba(255,255,255,0)")
+      g.fillStyle = puff; g.beginPath(); g.arc(px, py, r, 0, 6.283); g.fill()
+    }
+    return shape
+  }
+
   function build() {
     var area = W * H
     // Each layer: depth (0 far, 1 near), blade count, height range, stroke width, wind reach.
@@ -84,9 +119,10 @@
       for (var i = 0; i < count; i++) {
         var depth = random(p.from, p.to)
         var scale = 0.55 + depth * 0.6
+        var bx = random(-20, W + 20)
         blades.push({
-          x: random(-20, W + 20),
-          y: horizon + Math.pow(depth, 1.4) * (H - horizon) + 6,
+          x: bx,
+          y: groundAt(bx, depth),
           h: random(p.h[0], p.h[1]) * scale,
           lean: random(-0.18, 0.18),
           phase: random(0, 6.283), flutter: random(1.2, 2.4),
@@ -100,7 +136,15 @@
     stars = []
     for (var s = 0; s < Math.floor(W / 9); s++) stars.push({ x: random(0, W), y: random(0, horizon * 0.85), r: random(0.4, 1.3), a: random(0.25, 0.9) })
     fireflies = []
-    for (var f = 0; f < 18; f++) fireflies.push({ x: random(0, W), y: random(horizon + 10, H * 0.92), phase: random(0, 6.283), speed: random(0.15, 0.4), dx: random(-8, 8) })
+    for (var f = 0; f < 18; f++) { var fx = random(0, W); fireflies.push({ x: fx, y: random(hillAt(fx) + 10, H * 0.92), phase: random(0, 6.283), speed: random(0.15, 0.4), dx: random(-8, 8) }) }
+    flowers = []
+    for (var k = 0; k < Math.floor(W / 26 * budget); k++) {
+      var depthOf = random(0.25, 1), at = random(0, W)
+      flowers.push({ x: at, y: groundAt(at, depthOf), h: random(16, 38) * (0.6 + depthOf * 0.8), size: 1.8 + depthOf * 3, hue: Math.floor(random(0, 5)), phase: random(0, 6.283) })
+    }
+    if (cloudShapes.length === 0) for (var c = 0; c < 3; c++) cloudShapes.push(cloudShape())
+    clouds = []
+    for (var n = 0; n < 5; n++) clouds.push({ x: random(-200, W), y: random(H * 0.05, H * 0.3), scale: random(0.7, 1.35), speed: random(W / 420, W / 220), shape: cloudShapes[n % 3] })
   }
 
   // The sky, the sun or moon, the hills and the ground under the grass: drawn once per size and
@@ -129,7 +173,7 @@
     }
 
     // The sun sits low, just above the hills; the moon rides higher.
-    var sx = W * 0.7, sy = mix(horizon - H * 0.06, H * 0.2, t)
+    var sx = W * 0.7, sy = mix(horizon - H * 0.09, H * 0.2, t)
     var light = [mix(DAY.glow[0], NIGHT.glow[0], t), mix(DAY.glow[1], NIGHT.glow[1], t), mix(DAY.glow[2], NIGHT.glow[2], t)].map(Math.round).join(",")
     var glow = skyCtx.createRadialGradient(sx, sy, 0, sx, sy, Math.max(W, H) * mix(0.55, 0.3, t))
     glow.addColorStop(0, "rgba(" + light + "," + mix(0.85, 0.5, t) + ")")
@@ -155,9 +199,12 @@
     haze.addColorStop(1, "rgba(" + light + ",0)")
     skyCtx.fillStyle = haze; skyCtx.fillRect(0, horizon - H * 0.08, W, H * 0.12)
 
-    var ground = skyCtx.createLinearGradient(0, horizon, 0, H)
+    var ground = skyCtx.createLinearGradient(0, horizon - H * 0.06, 0, H)
     for (var f = 0; f < 3; f++) ground.addColorStop(f / 2, color(DAY.field[f], NIGHT.field[f], t))
-    skyCtx.fillStyle = ground; skyCtx.fillRect(0, horizon - 2, W, H - horizon + 2)
+    skyCtx.fillStyle = ground
+    skyCtx.beginPath(); skyCtx.moveTo(0, H)
+    for (var gx = 0; gx <= W + 12; gx += 12) skyCtx.lineTo(gx, hillAt(gx) - 2)
+    skyCtx.lineTo(W, H); skyCtx.closePath(); skyCtx.fill()
   }
 
   // Wind: a slow breath over the whole field, and gusts that travel across it from the left.
@@ -185,6 +232,7 @@
         b.bend = 0.18 + gust * 1.05 + Math.sin(time * b.flutter + b.phase) * 0.07
         b.step = b.shade + Math.round(gust * (1 + layer.tone))
       }
+      if (l === 2) drawFlowers(time)
       ctx.lineWidth = layer.width
       for (var step = 0; step < 8; step++) {
         var any = false
@@ -201,6 +249,49 @@
         if (any) { ctx.strokeStyle = shadeOf(layer.tone, step, night); ctx.stroke() }
       }
     }
+  }
+
+  // Flowers sway with the same gusts; each colour is filled once for all its flowers.
+  function drawFlowers(time) {
+    var t = night
+    for (var i = 0; i < flowers.length; i++) {
+      var f = flowers[i]
+      var sway = (0.15 + gustAt(f.x, time) * 0.9 + Math.sin(time * 1.6 + f.phase) * 0.08) * f.h * 0.42
+      f.tx = f.x + sway; f.ty = f.y - f.h + Math.abs(sway) * 0.2
+    }
+    ctx.lineWidth = 1.2
+    ctx.strokeStyle = color(DAY.stem, NIGHT.stem, t)
+    ctx.beginPath()
+    for (var s = 0; s < flowers.length; s++) { var stem = flowers[s]; ctx.moveTo(stem.x, stem.y); ctx.quadraticCurveTo(stem.x + (stem.tx - stem.x) * 0.2, stem.y - stem.h * 0.6, stem.tx, stem.ty) }
+    ctx.stroke()
+    for (var hue = 0; hue < 5; hue++) {
+      ctx.fillStyle = color(DAY.petals[hue], NIGHT.petals[hue], t)
+      ctx.beginPath()
+      for (var p = 0; p < flowers.length; p++) {
+        var bloom = flowers[p]
+        if (bloom.hue !== hue) continue
+        for (var k = 0; k < 4; k++) {
+          var a = k * 1.5708 + 0.4, px = bloom.tx + Math.cos(a) * bloom.size, py = bloom.ty + Math.sin(a) * bloom.size
+          ctx.moveTo(px + bloom.size * 0.8, py); ctx.arc(px, py, bloom.size * 0.8, 0, 6.283)
+        }
+      }
+      ctx.fill()
+    }
+    ctx.fillStyle = color(DAY.heart, NIGHT.heart, t)
+    ctx.beginPath()
+    for (var c = 0; c < flowers.length; c++) { var heart = flowers[c]; ctx.moveTo(heart.tx + heart.size * 0.6, heart.ty); ctx.arc(heart.tx, heart.ty, heart.size * 0.6, 0, 6.283) }
+    ctx.fill()
+  }
+
+  function drawClouds(dt) {
+    ctx.globalAlpha = mix(DAY.cloud, NIGHT.cloud, night)
+    for (var i = 0; i < clouds.length; i++) {
+      var c = clouds[i], w = 420 * c.scale, h = 150 * c.scale
+      c.x += c.speed * dt
+      if (c.x > W + 40) { c.x = -w - random(0, 200); c.y = random(H * 0.05, H * 0.3) }
+      ctx.drawImage(c.shape, c.x, c.y, w, h)
+    }
+    ctx.globalAlpha = 1
   }
 
   function launchBirds() {
@@ -266,6 +357,7 @@
   function frame(time, dt) {
     paintSky()
     ctx.drawImage(sky, 0, 0, W, H)
+    drawClouds(dt)
     drawBirds(time, dt)
     drawGrass(time)
     drawFireflies(time, dt)
