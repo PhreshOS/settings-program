@@ -72,8 +72,8 @@ function Gallery() {
                         <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
                         {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
                         {entry.removable
-                            ? <Flex gap="small">
-                                <Button size="xsmall" color="secondary:soft" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
+                            ? <Flex gap="small" justify="end">
+                                <Button size="xsmall" color="secondary" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
                                 <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />
                             </Flex>
                             : <Text size="xsmall" tone="secondary">{entry.description}</Text>}
@@ -82,7 +82,7 @@ function Gallery() {
                         <PreviewPair look={appearance} />
                         <Text size="small" style={{ fontWeight: 600 }}>Current</Text>
                         {/* In use and not saved: what can be done with it stands where a description would. */}
-                        <Flex gap="small">
+                        <Flex gap="small" justify="end">
                             <Button size="xsmall" color="primary" onPress={() => setSaving(true)}>Save</Button>
                         </Flex>
                     </GridList.Item>}
@@ -107,7 +107,7 @@ function Gallery() {
 /** Removes one of the owner's own Appearances after asking. */
 function Remove({ name, onRemove }: Readonly<{ name: string, onRemove: () => void }>) {
     return <AlertDialog>
-        <AlertDialog.Trigger size="xsmall" color="danger:soft">Delete</AlertDialog.Trigger>
+        <AlertDialog.Trigger size="xsmall" color="danger">Delete</AlertDialog.Trigger>
         <AlertDialog.Backdrop>
             <AlertDialog.Content>
                 <AlertDialog.Header>
