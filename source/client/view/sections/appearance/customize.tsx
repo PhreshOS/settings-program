@@ -20,7 +20,7 @@ const colorNames: Readonly<Record<AppearanceColor, string>> = {
 }
 
 const materialNames: Readonly<Record<keyof AppearanceMaterial, string>> = {
-    opacity: "Opacity", backdrop: "Frost", saturation: "Saturation", grain: "Grain", grainAmount: "Grain amount", distortion: "Distortion"
+    opacity: "Opacity", backdrop: "Backdrop blur", saturation: "Saturation", grain: "Grain", grainAmount: "Grain amount", distortion: "Distortion"
 }
 
 const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
