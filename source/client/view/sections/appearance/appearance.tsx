@@ -62,21 +62,20 @@ function Gallery() {
         </SectionHeader>
         <AppLayout.Content>
             <Page wide>
-                <GridList aria-label="Appearances" selectionMode="single" itemWidth={space.xlarge * 7} style={{ alignContent: "start", outline: "none" }} value={inUse?.key ?? current}
+                <GridList aria-label="Appearances" selectionMode="single" itemWidth={space.xlarge * 8} style={{ alignContent: "start", outline: "none" }} value={inUse?.key ?? current}
                     onChange={key => {
                         if (key === create) go("appearance/customize")
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
                     {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
                         <PreviewPair look={entry.appearance} pictures={entry.pictures} />
-                        <Flex align="center" gap="small">
-                            <Text size="small" style={{ fontWeight: 600, flex: "1 1 auto" }}>{entry.name}</Text>
-                            {entry.removable && <>
-                                <Button size="xsmall" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
-                                <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />
-                            </>}
-                        </Flex>
+                        <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
                         <Text size="xsmall" tone="secondary">{entry.description}</Text>
+                        {/* What the owner can do with one of their own, below what it is. */}
+                        {entry.removable && <Flex gap="small">
+                            <Button size="xsmall" color="secondary:soft" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
+                            <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />
+                        </Flex>}
                     </GridList.Item>)}
                     {inUse === null && <GridList.Item id={current} textValue="Current">
                         <PreviewPair look={appearance} />
@@ -107,7 +106,7 @@ function Gallery() {
 /** Removes one of the owner's own Appearances after asking. */
 function Remove({ name, onRemove }: Readonly<{ name: string, onRemove: () => void }>) {
     return <AlertDialog>
-        <AlertDialog.Trigger size="xsmall">Delete</AlertDialog.Trigger>
+        <AlertDialog.Trigger size="xsmall" color="danger:soft">Delete</AlertDialog.Trigger>
         <AlertDialog.Backdrop>
             <AlertDialog.Content>
                 <AlertDialog.Header>
