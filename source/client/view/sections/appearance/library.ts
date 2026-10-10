@@ -19,6 +19,10 @@ export function useLibrary() {
         async replace(id: string, name: string, appearance: Appearance) {
             await setSaved(current => (current ?? []).map(item => item.id === id ? { ...item, name, appearance } : item))
         },
+        /** Keeps a new look in one saved Appearance, under whatever name it has by then. */
+        async change(id: string, appearance: Appearance) {
+            await setSaved(current => (current ?? []).map(item => item.id === id ? { ...item, appearance } : item))
+        },
         async remove(id: string) {
             await setSaved(current => (current ?? []).filter(item => item.id !== id))
         }

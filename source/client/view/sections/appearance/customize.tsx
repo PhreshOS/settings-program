@@ -32,8 +32,9 @@ const wallpaperNames: Readonly<Record<keyof AppearanceWallpapers, string>> = { s
 /**
  * The Appearance in use, changed in place: every change applies to every Desktop a moment after it
  * settles, so dragging a slider sends where it ends. Light and dark stand side by side, so there is
- * nothing to switch between. Save keeps the result among the owner's Appearances, or in the one
- * being edited, and returns to them all.
+ * nothing to switch between. A new one is kept among the owner's Appearances by Save, which returns
+ * to them all; one of the owner's own, being edited, keeps each change as it applies, and only its
+ * name waits for Rename.
  */
 export default function Customize({ editing }: Readonly<{ editing?: string }>) {
     useArrival(true)
@@ -58,7 +59,10 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
         if (pending.current) clearTimeout(pending.current)
         pending.current = setTimeout(() => {
             pending.current = null
-            application.updateAppearance(next).then(() => setProblem(null), (error: unknown) => setProblem(error instanceof Error ? error.message : "The change could not be applied."))
+            // One of the owner's own, being edited, keeps each change as it applies: leaving needs no Save.
+            application.updateAppearance(next)
+                .then(() => edited ? library.change(edited.id, next) : undefined)
+                .then(() => setProblem(null), (error: unknown) => setProblem(error instanceof Error ? error.message : "The change could not be applied."))
         }, 250)
     }
 
@@ -83,7 +87,9 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
 
     return <>
         <SectionHeader title={edited?.name ?? "Customize"} above={{ title: "Appearance", address: "appearance" }}>
-            <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
+            {edited
+                ? <Button size="small" onPress={() => setSaving(true)}>Rename</Button>
+                : <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>}
         </SectionHeader>
         <AppLayout.Content>
             <Page>
@@ -149,9 +155,9 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                 </Group>
             </Page>
         </AppLayout.Content>
-        <SectionFooter status={problem ?? "In use on every Desktop as you change it"} problem={problem !== null} />
-        <SaveDialog open={saving} name={edited?.name} onClose={() => setSaving(false)}
-            onSave={name => void (edited ? library.replace(edited.id, name, draft) : library.save(name, draft)).then(() => go("appearance"))} />
+        <SectionFooter status={problem ?? (edited ? `In use on every Desktop and kept in ${edited.name} as you change it` : "In use on every Desktop as you change it")} problem={problem !== null} />
+        <SaveDialog open={saving} name={edited?.name} renaming={edited !== null} onClose={() => setSaving(false)}
+            onSave={name => void (edited ? library.replace(edited.id, name, draft) : library.save(name, draft).then(() => go("appearance")))} />
     </>
 }
 
