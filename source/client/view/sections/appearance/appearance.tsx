@@ -80,8 +80,11 @@ function Gallery() {
                     </GridList.Item>)}
                     {inUse === null && <GridList.Item id={current} textValue="Current">
                         <PreviewPair look={appearance} />
-                        <Text size="small" style={{ fontWeight: 600 }}>Current</Text>
-                        {/* In use and not saved: what can be done with it stands where a description would. */}
+                        <Flex align="baseline" gap="xsmall" style={{ flexWrap: "wrap" }}>
+                            <Text size="small" style={{ fontWeight: 600 }}>Current</Text>
+                            <Text size="xsmall" tone="secondary">(In use, not saved)</Text>
+                        </Flex>
+                        {/* What can be done with it stands where a description would. */}
                         <Flex gap="small" justify="end">
                             <Button size="xsmall" color="primary" onPress={() => setSaving(true)}>Save</Button>
                         </Flex>
