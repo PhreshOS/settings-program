@@ -11,7 +11,7 @@ export function useLibrary() {
         saved: saved ?? [],
         /** Keeps an Appearance under a free name and returns it. */
         async save(name: string, appearance: Appearance) {
-            const entry: AppearanceEntry = { id: crypto.randomUUID(), name: freeName(name, (saved ?? []).map(item => item.name)), description: "Yours", appearance }
+            const entry: AppearanceEntry = { id: crypto.randomUUID(), name: freeName(name, (saved ?? []).map(item => item.name)), appearance }
             await setSaved(current => [...current ?? [], entry])
             return entry
         },

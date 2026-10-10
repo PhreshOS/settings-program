@@ -70,12 +70,13 @@ function Gallery() {
                     {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
                         <PreviewPair look={entry.appearance} pictures={entry.pictures} />
                         <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
-                        <Text size="xsmall" tone="secondary">{entry.description}</Text>
-                        {/* What the owner can do with one of their own, below what it is. */}
-                        {entry.removable && <Flex gap="small">
-                            <Button size="xsmall" color="secondary:soft" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
-                            <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />
-                        </Flex>}
+                        {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
+                        {entry.removable
+                            ? <Flex gap="small">
+                                <Button size="xsmall" color="secondary:soft" onPress={() => void applying.safeExecute(entry.key).then(() => go(`appearance/customize/${entry.id}`))}>Edit</Button>
+                                <Remove name={entry.name} onRemove={() => void library.remove(entry.id)} />
+                            </Flex>
+                            : <Text size="xsmall" tone="secondary">{entry.description}</Text>}
                     </GridList.Item>)}
                     {inUse === null && <GridList.Item id={current} textValue="Current">
                         <PreviewPair look={appearance} />

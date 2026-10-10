@@ -21,7 +21,8 @@ import stoneDark from "@client/assets/wallpapers/stone-dark.svg?url"
 export type AppearanceEntry = Readonly<{
     id: string
     name: string
-    description: string
+    /** What a ready one is like; the owner's own carry none. */
+    description?: string
     appearance: Appearance
     /** The pictures Settings carries for it, one for each Theme, behind sign-in and the Desktop alike. */
     pictures?: ThemedValue<string>
