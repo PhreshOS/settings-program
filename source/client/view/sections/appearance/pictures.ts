@@ -12,12 +12,14 @@ export function usePictures() {
     const application = useApplication()
     const [uploaded, setUploaded] = useProgramStore<Readonly<Record<string, string>>>("pictureUploads", {})
 
-    async function upload(address: string) {
-        const name = new URL(address, location.href).pathname.split("/").pop()!
+    // Each Theme's picture is its own upload, even when both are one file: a wallpaper is its upload,
+    // and an HTML page shown in both Themes is then opened anew in each.
+    async function upload(address: string, theme: "light" | "dark") {
+        const name = `${theme}/${new URL(address, location.href).pathname.split("/").pop()!}`
         const kept = uploaded?.[name]
         if (kept && await application.uploadExists(kept)) return kept
         const picture = await (await fetch(address)).blob()
-        const key = await application.upload(new File([picture], name, { type: picture.type }))
+        const key = await application.upload(new File([picture], name.slice(theme.length + 1), { type: picture.type }))
         await setUploaded(current => ({ ...current, [name]: key }))
         return key
     }
@@ -27,16 +29,14 @@ export function usePictures() {
         /** The Appearance as it is applied, or `null` while its pictures were never uploaded. */
         known(entry: AppearanceEntry): Appearance | null {
             if (!entry.pictures) return entry.appearance
-            const name = (address: string) => new URL(address, location.href).pathname.split("/").pop()!
-            const light = uploaded?.[name(entry.pictures.light)], dark = uploaded?.[name(entry.pictures.dark)]
+            const name = (address: string, theme: string) => `${theme}/${new URL(address, location.href).pathname.split("/").pop()!}`
+            const light = uploaded?.[name(entry.pictures.light, "light")], dark = uploaded?.[name(entry.pictures.dark, "dark")]
             return light && dark ? withPictures(entry.appearance, { light, dark }) : null
         },
         /** The Appearance ready to apply, its pictures uploaded first where they are not yet. */
         async resolve(entry: AppearanceEntry): Promise<Appearance> {
             if (!entry.pictures) return entry.appearance
-            // One file for both Themes is uploaded once.
-            const light = await upload(entry.pictures.light)
-            const dark = entry.pictures.dark === entry.pictures.light ? light : await upload(entry.pictures.dark)
+            const [light, dark] = await Promise.all([upload(entry.pictures.light, "light"), upload(entry.pictures.dark, "dark")])
             return withPictures(entry.appearance, { light, dark })
         }
     }

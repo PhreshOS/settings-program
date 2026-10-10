@@ -119,7 +119,7 @@ export const readyAppearances: readonly AppearanceEntry[] = [
         }
     },
     {
-        // One page for both Themes: it follows the Desktop's, from day to night.
+        // One page for both Themes, uploaded for each: it reads the Theme it is opened in.
         id: "breeze", name: "Breeze", description: "Wind over a quiet field, birds under a low sun. A moving scene, light to draw.",
         pictures: { light: breeze, dark: breeze }, posters: { light: breezeLight, dark: breezeDark },
         appearance: {
