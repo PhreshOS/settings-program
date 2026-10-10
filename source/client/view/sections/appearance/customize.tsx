@@ -88,8 +88,8 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
 
     return <>
         <SectionHeader title={edited?.name ?? "Customize"} above={{ title: "Appearance", address: "appearance" }}>
-            {/* The page's own tools stand close together, apart from the way around. */}
-            <Flex gap="xsmall">
+            {/* The page's own tools, apart from the way around, as close as a Dialog's footer holds its buttons. */}
+            <Flex gap="small">
                 <Button size="small" disabled={!changed} onPress={() => change(origin)}><Undo2 />Revert</Button>
                 {edited && <Button size="small" color="secondary" onPress={() => setRenaming(true)}><PencilLine />Rename</Button>}
                 <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
