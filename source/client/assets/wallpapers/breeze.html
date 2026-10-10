@@ -15,7 +15,8 @@
 <canvas id="field"></canvas>
 <script>
 // A calm field under a low sun: wind passes over the grass in gusts, a few birds glide across.
-// By night the sun becomes a moon, the birds rest, and a few fireflies rise from the grass.
+// By night the sun becomes a moon, the birds rest, and a few fireflies rise from the grass. The
+// Theme comes from the address, ?theme=light or ?theme=dark, as the Desktop opens the page.
 // Light on purpose: at most 30 frames a second, the sky drawn once and kept, blades of one
 // shade drawn in one stroke, a lower resolution on large screens, and nothing at all while hidden.
 (function () {
@@ -47,9 +48,12 @@
   var layers = [], birds = [], fireflies = [], stars = []
   var birdWait = 4
 
+  // The Desktop names the Theme it shows the page in; opened on its own, the page follows the browser.
+  var given = new URLSearchParams(location.search).get("theme")
   var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
   var still = window.matchMedia("(prefers-reduced-motion: reduce)")
-  var night = darkQuery.matches ? 1 : 0, nightTarget = night, skyKey = ""
+  function dark() { return given ? given === "dark" : darkQuery.matches }
+  var night = dark() ? 1 : 0, nightTarget = night, skyKey = ""
 
   function random(a, b) { return a + Math.random() * (b - a) }
   function mix(a, b, t) { return a + (b - a) * t }
@@ -297,7 +301,7 @@
     if (!running && !document.hidden) { last = performance.now(); running = requestAnimationFrame(tick) }
   }
 
-  darkQuery.addEventListener("change", function () { nightTarget = darkQuery.matches ? 1 : 0; start() })
+  darkQuery.addEventListener("change", function () { nightTarget = dark() ? 1 : 0; start() })
   still.addEventListener("change", start)
   document.addEventListener("visibilitychange", start)
   window.addEventListener("resize", function () { resize(); start(); if (still.matches) frame(12, 0) })
