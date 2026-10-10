@@ -67,9 +67,10 @@
   }
 
   // One broad hill, seen from a little below: its crest is the horizon, highest left of the middle.
+  // Its curve is measured against the width it spans, so it is as gentle on a tall screen as a wide one.
   function hillAt(x) {
     var u = x / W
-    return horizon + H * (0.42 * (u - 0.42) * (u - 0.42) + 0.012 * Math.sin(u * 5.3 + 0.6))
+    return horizon + W * (0.2625 * (u - 0.42) * (u - 0.42) + 0.0075 * Math.sin(u * 5.3 + 0.6))
   }
   // Where something at a depth from 0 (the crest) to 1 (the foot of the screen) stands at x.
   function groundAt(x, depth) {
