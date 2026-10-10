@@ -9,6 +9,9 @@ import duskLight from "@client/assets/wallpapers/dusk-light.svg?url"
 import duskDark from "@client/assets/wallpapers/dusk-dark.svg?url"
 import stoneLight from "@client/assets/wallpapers/stone-light.svg?url"
 import stoneDark from "@client/assets/wallpapers/stone-dark.svg?url"
+import breeze from "@client/assets/wallpapers/breeze.html?url"
+import breezeLight from "@client/assets/wallpapers/breeze-light.jpg?url"
+import breezeDark from "@client/assets/wallpapers/breeze-dark.jpg?url"
 
 /**
  * Appearances Settings offers. The System knows one Appearance document, the one it applies; an
@@ -26,6 +29,8 @@ export type AppearanceEntry = Readonly<{
     appearance: Appearance
     /** The pictures Settings carries for it, one for each Theme, behind sign-in and the Desktop alike. */
     pictures?: ThemedValue<string>
+    /** Still images of moving pictures, such as an HTML scene, shown where it is only previewed. */
+    posters?: ThemedValue<string>
 }>
 
 const base: Appearance = defaultAppearance
@@ -111,6 +116,18 @@ export const readyAppearances: readonly AppearanceEntry[] = [
             material: material({ opacity: 1, backdrop: 0, saturation: 1, grain: 0.04, distortion: 0 }),
             shadow: shadow({ blur: 6, opacity: 0.14 }),
             taskbar: taskbar({ position: "left" })
+        }
+    },
+    {
+        // One page for both Themes: it follows the Desktop's, from day to night.
+        id: "breeze", name: "Breeze", description: "Wind over a quiet field, birds under a low sun. A moving scene, light to draw.",
+        pictures: { light: breeze, dark: breeze }, posters: { light: breezeLight, dark: breezeDark },
+        appearance: {
+            ...base,
+            colors: colors(
+                { background: "#f3f5ee", foreground: "#1e2a1e", default: "#fbfcf8", primary: "#c98a3a", secondary: "#6f9a55" },
+                { background: "#0b121c", foreground: "#e6ecf2", default: "#151e2a", primary: "#e6b46a", secondary: "#86b47a" }),
+            radius: 14
         }
     }
 ]

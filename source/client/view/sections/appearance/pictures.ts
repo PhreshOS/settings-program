@@ -34,7 +34,9 @@ export function usePictures() {
         /** The Appearance ready to apply, its pictures uploaded first where they are not yet. */
         async resolve(entry: AppearanceEntry): Promise<Appearance> {
             if (!entry.pictures) return entry.appearance
-            const [light, dark] = await Promise.all([upload(entry.pictures.light), upload(entry.pictures.dark)])
+            // One file for both Themes is uploaded once.
+            const light = await upload(entry.pictures.light)
+            const dark = entry.pictures.dark === entry.pictures.light ? light : await upload(entry.pictures.dark)
             return withPictures(entry.appearance, { light, dark })
         }
     }

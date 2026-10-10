@@ -68,7 +68,7 @@ function Gallery() {
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
                     {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
-                        <PreviewPair look={entry.appearance} pictures={entry.pictures} />
+                        <PreviewPair look={entry.appearance} pictures={entry.posters ?? entry.pictures} />
                         <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
                         {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
                         {entry.removable
