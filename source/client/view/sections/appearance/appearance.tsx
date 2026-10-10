@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useSystemAppearance } from "@phreshos/react"
-import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AlertDialog, AppLayout, Button, Flex, GridList, Spinner, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { readyAppearances, sameAppearance, type AppearanceEntry } from "@client/core/appearances"
@@ -49,12 +49,17 @@ function Gallery() {
     ]
     const inUse = entries.find(entry => sameAppearance(pictures.known(entry), appearance)) ?? null
 
+    // Applying one may first upload its pictures: until it is in use, it says so.
+    const [applyingKey, setApplyingKey] = useState<string | null>(null)
     const applying = usePromise(async (key: string) => {
+        setApplyingKey(key)
         try {
             await application.updateAppearance(await pictures.resolve(entries.find(entry => entry.key === key)!))
             setProblem(null)
         } catch (error) { setProblem(error instanceof Error ? error.message : "The Appearance could not be applied."); throw error }
+        finally { setApplyingKey(current => current === key ? null : current) }
     })
+    const applyingName = entries.find(entry => entry.key === applyingKey)?.name
 
     return <>
         <SectionHeader title="Appearance">
@@ -69,7 +74,10 @@ function Gallery() {
                     }}>
                     {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
                         <PreviewPair look={entry.appearance} pictures={entry.posters ?? entry.pictures} />
-                        <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
+                        <Flex align="center" gap="xsmall">
+                            <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
+                            {entry.key === applyingKey && <Spinner size="xsmall" label={`Applying ${entry.name}`} />}
+                        </Flex>
                         {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
                         {entry.removable
                             ? <Flex gap="small" justify="end">
@@ -102,7 +110,7 @@ function Gallery() {
                 </GridList>
             </Page>
         </AppLayout.Content>
-        <SectionFooter status={problem ?? (inUse ? `${inUse.name} is in use` : "An Appearance of your own is in use")} problem={problem !== null} />
+        <SectionFooter status={problem ?? (applyingName ? `Applying ${applyingName}…` : inUse ? `${inUse.name} is in use` : "An Appearance of your own is in use")} problem={problem !== null} />
         <SaveDialog open={saving} onClose={() => setSaving(false)} onSave={name => void library.save(name, appearance)} />
     </>
 }
