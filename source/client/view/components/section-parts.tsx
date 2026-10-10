@@ -78,14 +78,17 @@ export function Group({ title, description, aside, children }: Readonly<{ title:
     </Flex>
 }
 
-/** One setting in a Group: what it is on one side, how to change it on the other. */
-export function Row({ label, description, children }: Readonly<{ label: ReactNode, description?: ReactNode, children?: ReactNode }>) {
+/**
+ * One setting in a Group: what it is on one side, how to change it on the other. A `truncate`
+ * description stays on one line, cut where the row is narrow, and reads whole on hover.
+ */
+export function Row({ label, description, truncate = false, children }: Readonly<{ label: ReactNode, description?: ReactNode, truncate?: boolean, children?: ReactNode }>) {
     const space = useScale(useAppearance().spacing)
 
     return <div className="row" style={{ display: "flex", alignItems: "center", gap: space.medium, padding: `${space.small}px ${space.medium}px`, minHeight: space.xlarge * 1.5 }}>
         <Flex direction="column" style={{ flex: "1 1 auto", minWidth: 0 }}>
             <Text size="medium">{label}</Text>
-            {description != null && <Text size="small" tone="secondary">{description}</Text>}
+            {description != null && <Text size="small" tone="secondary" truncate={truncate} title={truncate && typeof description === "string" ? description : undefined}>{description}</Text>}
         </Flex>
         {children}
     </div>

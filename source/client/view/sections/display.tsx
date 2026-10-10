@@ -42,14 +42,14 @@ export function DesktopPreferences({ update, compact = false }: Readonly<{ updat
     const resolved = useResolvedDesktopPreferences()
 
     return <Group title="This Desktop" description="Only this browser shows these.">
-        <Row label="Theme" description={preferences.theme === "browser" ? `Follows the browser, now ${resolved.theme}.` : undefined}>
+        <Row label="Theme" truncate description={preferences.theme === "browser" ? `Follows the browser, now ${resolved.theme}.` : undefined}>
             <SegmentedControl aria-label="Theme" size="small" value={preferences.theme} onChange={value => update({ theme: value as "browser" | "light" | "dark" })}>
                 <SegmentedControl.Item id="browser"><Monitor />Browser</SegmentedControl.Item>
                 <SegmentedControl.Item id="light"><Sun />Light</SegmentedControl.Item>
                 <SegmentedControl.Item id="dark"><Moon />Dark</SegmentedControl.Item>
             </SegmentedControl>
         </Row>
-        <Row label="Animations" description={preferences.animations === "browser" ? `Follows the browser, now ${resolved.animations ? "on" : "off"}.` : undefined}>
+        <Row label="Animations" truncate description={preferences.animations === "browser" ? `Follows the browser, now ${resolved.animations ? "on" : "off"}.` : undefined}>
             <SegmentedControl aria-label="Animations" size="small" value={String(preferences.animations)}
                 onChange={value => update({ animations: value === "browser" ? "browser" : value === "true" })}>
                 <SegmentedControl.Item id="browser"><Monitor />Browser</SegmentedControl.Item>
