@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { appearanceLimits, systemWallpapers, wallpaperSizeLimit, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
 import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
-import { PanelBottom, PanelLeft, PanelRight, PanelTop, Save } from "@phreshos/react-ui/icons"
+import { PanelBottom, PanelLeft, PanelRight, PanelTop, PencilLine, Save, Undo2 } from "@phreshos/react-ui/icons"
 import { sameAppearance } from "@client/core/appearances"
 import { useApplication } from "../../application"
 import { useArrival } from "../../components/arrival"
@@ -88,9 +88,12 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
 
     return <>
         <SectionHeader title={edited?.name ?? "Customize"} above={{ title: "Appearance", address: "appearance" }}>
-            <Button size="small" disabled={!changed} onPress={() => change(origin)}>Revert</Button>
-            {edited && <Button size="small" color="secondary" onPress={() => setRenaming(true)}>Rename</Button>}
-            <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
+            {/* The page's own tools stand close together, apart from the way around. */}
+            <Flex gap="xsmall">
+                <Button size="small" disabled={!changed} onPress={() => change(origin)}><Undo2 />Revert</Button>
+                {edited && <Button size="small" color="secondary" onPress={() => setRenaming(true)}><PencilLine />Rename</Button>}
+                <Button size="small" color="primary" onPress={() => setSaving(true)}><Save />Save</Button>
+            </Flex>
         </SectionHeader>
         <AppLayout.Content>
             <Page>
