@@ -2,11 +2,12 @@ import { useState } from "react"
 import { programPermissionCatalog, type Permission, type PermissionName } from "@phreshos/core"
 import { AlertDialog, AppLayout, Button, Checkbox, Flex, Snippet, Switch, TagGroup, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Bot } from "@phreshos/react-ui/icons"
+import type { Program } from "@phreshos/core"
 import type { ProgramDetails } from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
-import { ReadView, type Read } from "../../components/read"
+import { ReadView, useRead, type Read } from "../../components/read"
 import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { useControls } from "../../components/controls"
@@ -35,7 +36,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
     const application = useApplication()
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
-    const { program, startup, pinnedAt } = details
+    const { program, startup, pinnedAt, installedAt } = details
     const { busy, run } = useControls(onProblem, onChange)
 
     return <Page>
@@ -54,6 +55,9 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
         <Permissions details={details} busy={busy} run={run} />
 
         <Group title="With the System">
+            {installedAt && <Row label="Installed">
+                <Text tone="secondary" size="small" className="tabular">{installedAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</Text>
+            </Row>}
             <Row label="Startup" description={startup
                 ? `Starts ${startup.name ? `“${startup.name}”` : "its default launch"} each time the System starts.`
                 : "Nothing starts with the System. The button starts its default launch."}>
@@ -65,6 +69,8 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
                 <Switch aria-label="Pinned to the Taskbar" checked={pinnedAt !== null} disabled={busy("pin")} onChange={on => run("pin", () => application.pin(program, on))} />
             </Row>
         </Group>
+
+        <Storage program={program} onProblem={onProblem} />
 
         {program.hasAgent && <Group title="Agents" aside={<Button size="small" depth="none" onPress={() => go("agents")}>About agents</Button>}>
             <Row label="Agents can use it" description="It explains itself to agents: what it does and how to use it, which an agent reads before it starts." />
@@ -129,6 +135,55 @@ function describe(value: Permission | null, description: string) {
     if (value === null) return `Not decided. ${description}`
     if (value.length === 0) return description
     return `Only ${value.join(", ")}.`
+}
+
+/**
+ * What the Program keeps in the System, as it was when the page opened or last cleared. Clearing its
+ * data ends it and is asked first; clearing its cache is not, since it can make that again.
+ */
+function Storage({ program, onProblem }: Readonly<{ program: Program, onProblem: (error: unknown) => void }>) {
+    const application = useApplication()
+    const sizes = useRead(() => application.storage(program), [program])
+    const { busy, run } = useControls(onProblem, sizes.retry)
+    const size = (bytes: number | undefined) => <Text tone="secondary" size="small" className="tabular">{bytes === undefined ? "…" : formatSize(bytes)}</Text>
+
+    return <Group title="Storage" description="What it keeps in the System.">
+        <Row label="Everything it keeps" description="Its files, store, database, cache, and logs. Clearing its data ends its Processes; its logs and your choices about it stay.">
+            <Flex align="center" gap="small">
+                {size(sizes.value?.total)}
+                <AlertDialog>
+                    <AlertDialog.Trigger size="small" color="danger" pending={busy("data")}>Clear data</AlertDialog.Trigger>
+                    <AlertDialog.Backdrop>
+                        <AlertDialog.Content>
+                            <AlertDialog.Header>
+                                <AlertDialog.Title>Clear {program.name}’s data?</AlertDialog.Title>
+                                <AlertDialog.Description>Its Processes end, and its files, store, database, and cache are deleted. Its logs and your choices about it stay.</AlertDialog.Description>
+                            </AlertDialog.Header>
+                            <AlertDialog.Footer>
+                                <AlertDialog.Close>Cancel</AlertDialog.Close>
+                                <AlertDialog.Close color="danger" onPress={() => run("data", () => application.clearStorage(program))}>Clear data</AlertDialog.Close>
+                            </AlertDialog.Footer>
+                        </AlertDialog.Content>
+                    </AlertDialog.Backdrop>
+                </AlertDialog>
+            </Flex>
+        </Row>
+        <Row label="Cache" description="Files it can make again. Clearing them does not stop it.">
+            <Flex align="center" gap="small">
+                {size(sizes.value?.cache)}
+                <Button size="small" pending={busy("cache")} onPress={() => run("cache", () => application.clearCache(program))}>Clear cache</Button>
+            </Flex>
+        </Row>
+    </Group>
+}
+
+/** Bytes as a person reads them, in units of a thousand. */
+function formatSize(bytes: number) {
+    if (bytes < 1000) return `${bytes} B`
+    const units = ["KB", "MB", "GB", "TB"]
+    let value = bytes / 1000, unit = 0
+    while (value >= 1000 && unit < units.length - 1) { value /= 1000; unit++ }
+    return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`
 }
 
 /** Removes the Program after the owner confirms; its own data can go with it. */

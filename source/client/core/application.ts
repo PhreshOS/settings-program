@@ -11,7 +11,12 @@ export type ProgramDetails = Readonly<{
     startup: Launch | null
     /** When it was pinned to the Taskbar, or `null` when it is not. */
     pinnedAt: Date | null
+    /** When it was first installed. */
+    installedAt: Date | null
 }>
+
+/** How many bytes a Program keeps in the System, and how many of them are its cache. */
+export type ProgramStorage = Readonly<{ total: number, cache: number }>
 
 /** A valid Session with the browser Connections it signs in. */
 export type SessionDetails = Readonly<{
@@ -105,10 +110,10 @@ export default class Application {
     }
 
     public async program(program: Program): Promise<ProgramDetails> {
-        const [permissions, startup, pinnedAt] = await Promise.all([
-            program.permissions.all(), program.startup.get(), program.pinnedAt()
+        const [permissions, startup, pinnedAt, installedAt] = await Promise.all([
+            program.permissions.all(), program.startup.get(), program.pinnedAt(), program.installedAt()
         ])
-        return { program, permissions, startup, pinnedAt }
+        return { program, permissions, startup, pinnedAt, installedAt }
     }
 
     /** Calls `change` whenever the installed Programs, or what Settings shows about them, change. */
@@ -129,6 +134,21 @@ export default class Application {
     /** Removes the owner's decision, so the Program's declaration applies again. */
     public reset(program: Program, name: PermissionName) {
         return program.permissions.reset(name)
+    }
+
+    public async storage(program: Program): Promise<ProgramStorage> {
+        const [total, cache] = await Promise.all([program.storageSize(), program.cache.size()])
+        return { total, cache }
+    }
+
+    /** Ends the Program's Processes and empties what it keeps; the owner's choices and its logs stay. */
+    public clearStorage(program: Program) {
+        return program.clearStorage()
+    }
+
+    /** Empties its cache, which it can make again; its Processes go on. */
+    public clearCache(program: Program) {
+        return program.cache.clear()
     }
 
     public pin(program: Program, pinned: boolean) {
