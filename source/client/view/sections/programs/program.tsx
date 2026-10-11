@@ -58,7 +58,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
                 ? `Starts ${startup.name ? `“${startup.name}”` : "its default launch"} each time the System starts.`
                 : "Nothing starts with the System. The button starts its default launch."}>
                 {startup
-                    ? <Button size="small" disabled={busy("startup")} onPress={() => run("startup", () => application.removeStartup(program))}>Remove</Button>
+                    ? <Button size="small" color="danger" disabled={busy("startup")} onPress={() => run("startup", () => application.removeStartup(program))}>Remove</Button>
                     : <Button size="small" disabled={busy("startup")} onPress={() => run("startup", () => application.setStartup(program))}>Start with the System</Button>}
             </Row>
             <Row label="Pinned to the Taskbar">

@@ -29,7 +29,7 @@ export default function Startup() {
                         <Icon of={details.program} size={space.large} />
                         {details.program.name}
                     </Flex>} description={details.startup?.name ? `Starts “${details.startup.name}”.` : "Starts its default launch."}>
-                        <Button size="small" aria-label={`Remove ${details.program.name}'s startup`} disabled={busy(details.program.identity)}
+                        <Button size="small" color="danger" aria-label={`Remove ${details.program.name}'s startup`} disabled={busy(details.program.identity)}
                             onPress={() => run(details.program.identity, () => application.removeStartup(details.program))}>Remove</Button>
                     </Row>)}
                 </Group>
