@@ -23,13 +23,7 @@ export default function Agents() {
                     and update. It uses the same command line you do.
                 </Text>
 
-                <Group title="1. The command line" description="Already here if you installed PhreshOS with it.">
-                    <Flex direction="column" gap="small" style={{ padding: space.medium }}>
-                        <Snippet code copyLabel="Copy the install command">npm install --global @phreshos/cli</Snippet>
-                    </Flex>
-                </Group>
-
-                <Group title="2. Tell your agent where to start" description="In your message, or in the instructions file it reads, such as AGENTS.md or CLAUDE.md.">
+                <Group title="Tell your agent where to start" description="In your message, or in the instructions file it reads, such as AGENTS.md or CLAUDE.md.">
                     <Flex direction="column" gap="small" style={{ padding: space.medium }}>
                         <Snippet copyLabel="Copy the instruction">{instruction}</Snippet>
                         <Text size="small" tone="secondary">
