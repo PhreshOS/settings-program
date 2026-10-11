@@ -214,7 +214,8 @@ export default class Application {
     public async process(identity: string) {
         const process = await system.process.find(identity)
         if (!process) return null
-        const [details, parent, installed] = await Promise.all([this.processDetails(process), process.parent(), process.program().installed()])
+        const [details, parent, installedAt] = await Promise.all([this.processDetails(process), process.parent(), process.program().installedAt()])
+        const installed = installedAt !== null
         // Installed: its Program has a page under Programs; otherwise it runs from a project.
         return { ...details, parent, options: process.options, opened: process.opened, installed }
     }
