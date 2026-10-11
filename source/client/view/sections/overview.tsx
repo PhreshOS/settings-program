@@ -39,7 +39,7 @@ export default function Overview() {
                     <DecodedIcon address={address} size={logo} />
                     <Flex direction="column" gap="xsmall" style={{ flex: "1 1 auto", minWidth: 0 }}>
                         <Heading level={2} size="xlarge">{about.name}</Heading>
-                        <Text tone="secondary" className="tabular">Version {about.version} · Release {about.release.name}</Text>
+                        <Text tone="secondary" className="tabular">Version {about.version} · {about.release.name}</Text>
                         <Text tone="secondary" size="small"><Uptime since={about.startedAt} /></Text>
                     </Flex>
                 </Surface>
