@@ -31,8 +31,8 @@ export default function Agents() {
             <Page>
                 <Text tone="secondary">
                     Any agent that can run commands on this machine, such as a coding assistant in a terminal,
-                    can work in PhreshOS beside you: open Programs, read their logs, move Windows, install
-                    and update. It uses the same command line you do.
+                    can work in PhreshOS beside you: use its Programs, open and arrange their Windows, read
+                    their logs, install and update them. It uses the same command line you do.
                 </Text>
 
                 <Group title="Tell your agent where to start" description="In your message, or in the instructions file it reads, such as AGENTS.md or CLAUDE.md.">
