@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useSystemAppearance } from "@phreshos/react"
-import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AlertDialog, AppLayout, Button, Flex, GridList, Spinner, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { readyAppearances, sameAppearance, type AppearanceEntry } from "@client/core/appearances"
@@ -72,9 +72,12 @@ function Gallery() {
                         if (key === create) go("appearance/customize")
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
-                    {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name} pending={entry.key === applyingKey}>
+                    {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
                         <PreviewPair look={entry.appearance} pictures={entry.posters ?? entry.pictures} />
-                        <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
+                        <Flex align="center" gap="xsmall">
+                            <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
+                            {entry.key === applyingKey && <Spinner size="xsmall" label={`Applying ${entry.name}`} />}
+                        </Flex>
                         {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
                         {entry.removable
                             ? <Flex gap="small" justify="end">
