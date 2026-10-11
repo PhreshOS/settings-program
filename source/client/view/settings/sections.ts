@@ -1,4 +1,4 @@
-import { Activity, FileText, House, KeyRound, LayoutGrid, Monitor, Palette, Power, SquareArrowOutUpRight, Waypoints } from "@phreshos/react-ui/icons"
+import { Activity, Bot, FileText, House, KeyRound, LayoutGrid, Monitor, Palette, Power, SquareArrowOutUpRight, Waypoints } from "@phreshos/react-ui/icons"
 import type { SettingsSection } from "./section"
 import Overview from "../sections/overview"
 import Appearance from "../sections/appearance/appearance"
@@ -10,6 +10,7 @@ import Startup from "../sections/startup"
 import Defaults from "../sections/defaults"
 import Authentication from "../sections/authentication"
 import Logs from "../sections/logs"
+import Agents from "../sections/agents"
 
 /** Every section, in the order the sidebar lists them. A new section is one entry here and its file. */
 export const sections: readonly SettingsSection[] = [
@@ -22,5 +23,6 @@ export const sections: readonly SettingsSection[] = [
     { id: "desktop", title: "Preferences", icon: Monitor, group: "Desktop", View: Desktop },
     { id: "appearance", title: "Appearance", icon: Palette, group: "System", View: Appearance },
     { id: "authentication", title: "Authentication", icon: KeyRound, group: "System", View: Authentication },
+    { id: "agents", title: "Agents", icon: Bot, group: "System", View: Agents },
     { id: "logs", title: "Logs", icon: FileText, group: "System", View: Logs }
 ]
