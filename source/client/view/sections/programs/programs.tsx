@@ -6,7 +6,7 @@ import Icon from "../../components/icon"
 import { ReadView, useRead, type Read } from "../../components/read"
 import { SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
-import ProgramView from "./program"
+import ProgramView, { AgentMark } from "./program"
 
 /** The installed Programs, and one of them when the address names it. */
 export default function Programs({ rest }: Readonly<{ rest: string | null }>) {
@@ -51,6 +51,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
                                 <span style={{ display: "flex", alignItems: "center", gap: space.small, minWidth: 0 }} title={program.description ?? undefined}>
                                     <Icon of={program} size={space.medium * 1.5} />
                                     <Text truncate>{program.name}</Text>
+                                    {program.hasAgent && <AgentMark />}
                                 </span>
                             </Table.Cell>
                             <Table.Cell><Text tone="secondary" className="tabular">{program.version}</Text></Table.Cell>

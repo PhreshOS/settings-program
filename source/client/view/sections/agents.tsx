@@ -1,6 +1,9 @@
-import { AppLayout, Code, Flex, Snippet, Text, useAppearance, useScale } from "@phreshos/react-ui"
-import { useArrival } from "../components/arrival"
+import { AppLayout, Code, Flex, GridList, Snippet, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { useApplication } from "../application"
+import Icon from "../components/icon"
+import { ReadView, useRead } from "../components/read"
 import { Group, Page, SectionFooter, SectionHeader } from "../components/section-parts"
+import { useFrame } from "../settings/frame"
 
 /** What an agent is told before it starts: one command, which points to everything else. */
 const instruction = "Before you work in PhreshOS, run `phresh skill` and follow what it says."
@@ -10,8 +13,11 @@ const instruction = "Before you work in PhreshOS, run `phresh skill` and follow 
  * `phresh`, as the owner does, once it has read what `phresh skill` explains.
  */
 export default function Agents() {
+    const application = useApplication()
+    const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
-    useArrival(true)
+    // The Programs that explain themselves to agents, as they are installed and removed.
+    const programs = useRead(() => application.programs(), [], change => application.followPrograms(change))
 
     return <>
         <SectionHeader title="Agents" />
@@ -31,6 +37,25 @@ export default function Agents() {
                             to look next. Every command also explains itself with <Code>--help</Code>.
                         </Text>
                     </Flex>
+                </Group>
+
+                <Group title="Programs it can use" description="Each explains itself to agents: what it does and how to use it.">
+                    <ReadView read={programs}>{all => {
+                        const usable = all.filter(({ program }) => program.hasAgent)
+                        return usable.length === 0
+                            ? <Text size="small" tone="secondary" style={{ padding: space.medium }}>No installed Program explains itself to agents yet.</Text>
+                            : <div style={{ padding: space.medium }}>
+                                <GridList aria-label="Programs agents can use" selectionMode="none" itemWidth={space.xlarge * 5}
+                                    onAction={identity => go(`programs/${String(identity)}`)}>
+                                    {usable.map(({ program }) => <GridList.Item key={program.identity} id={program.identity} textValue={program.name}>
+                                        <Flex align="center" gap="small" style={{ minWidth: 0 }}>
+                                            <Icon of={program} size={space.medium * 1.5} />
+                                            <Text truncate>{program.name}</Text>
+                                        </Flex>
+                                    </GridList.Item>)}
+                                </GridList>
+                            </div>
+                    }}</ReadView>
                 </Group>
 
                 <Group title="What it may do" description="It works as you.">

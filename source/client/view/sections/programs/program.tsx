@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { programPermissionCatalog, type Permission, type PermissionName } from "@phreshos/core"
-import { AlertDialog, AppLayout, Button, Checkbox, Flex, Switch, TagGroup, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AlertDialog, AppLayout, Button, Checkbox, Flex, Snippet, Switch, TagGroup, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { Bot } from "@phreshos/react-ui/icons"
 import type { ProgramDetails } from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../../application"
@@ -64,6 +65,13 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
                 <Switch aria-label="Pinned to the Taskbar" checked={pinned} disabled={busy("pin")} onChange={on => run("pin", () => application.pin(program, on))} />
             </Row>
         </Group>
+
+        {program.hasAgent && <Group title="Agents" aside={<Button size="small" depth="none" onPress={() => go("agents")}>About agents</Button>}>
+            <Row label="Agents can use it" description="It explains itself to agents: what it does and how to use it, which an agent reads before it starts." />
+            <div style={{ padding: `0 ${space.medium}px ${space.medium}px` }}>
+                <Snippet code copyLabel="Copy the command">{`phresh program agent --program ${program.identity}`}</Snippet>
+            </div>
+        </Group>}
 
         {!!program.opens.length && <Group title="Opens" aside={<Button size="small" depth="none" onPress={() => go("defaults")}>Defaults</Button>}>
             <div style={{ padding: space.medium }}>
@@ -150,4 +158,11 @@ function Uninstall({ details, onUninstalled, onProblem }: Readonly<{ details: Pr
             </AlertDialog.Content>
         </AlertDialog.Backdrop>
     </AlertDialog>
+}
+
+/** Marks a Program that agents can use: it explains itself to them. */
+export function AgentMark() {
+    return <span title="Agents can use it" style={{ display: "inline-flex", flex: "none" }}>
+        <Bot size={14} role="img" aria-label="Agents can use it" style={{ opacity: 0.6 }} />
+    </span>
 }
