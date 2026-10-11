@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 import type { SystemLogLevel, SystemLogRecord } from "@phreshos/core"
-import { AppLayout, Badge, Button, Flex, Grid, GridList, Heading, Surface, Text, useAppearance, useScale } from "@phreshos/react-ui"
-import { Activity, Bot, ChevronRight, LayoutGrid, Power, Users, type LucideIcon } from "@phreshos/react-ui/icons"
+import { AppLayout, Badge, Button, Flex, Grid, GridList, Heading, Snippet, Surface, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { Activity, ChevronRight, LayoutGrid, Power, Users, type LucideIcon } from "@phreshos/react-ui/icons"
 import { useApplication } from "../application"
 import { ReadView, useRead } from "../components/read"
 import { decodedIcon, DecodedIcon } from "../components/icon"
 import { Group, Page, SectionFooter, SectionHeader } from "../components/section-parts"
 import { useFrame } from "../settings/frame"
 import { DesktopPreferences, useDesktopUpdate } from "./display"
+import { agentInstruction } from "./agents"
 
 const levels: Readonly<Record<SystemLogLevel, "danger" | "warning" | "default">> = { debug: "default", info: "default", warning: "warning", error: "danger" }
 
@@ -55,12 +56,11 @@ export default function Overview() {
 
                 <Grid columns="repeat(auto-fit, minmax(min(20rem, 100%), 1fr))" gap="large" style={{ alignItems: "start" }}>
                     <DesktopPreferences update={updating.update} compact />
-                    <Group title="Agents" description="Let an agent work in PhreshOS beside you."
-                        aside={<Button size="small" depth="flat" onPress={() => frame.go("agents")}>Set one up<ChevronRight /></Button>}>
-                        <Flex align="center" gap="small" style={{ padding: space.medium }}>
-                            <Bot size={18} style={{ opacity: 0.7, flex: "none" }} />
-                            <Text size="small" tone="secondary">Any agent that runs commands on this machine uses PhreshOS as you do.</Text>
-                        </Flex>
+                    <Group title="Agents" description="Give your agent this, and it works in PhreshOS beside you."
+                        aside={<Button size="small" depth="flat" onPress={() => frame.go("agents")}>Details<ChevronRight /></Button>}>
+                        <div style={{ padding: space.medium }}>
+                            <Snippet copyLabel="Copy the instruction">{agentInstruction}</Snippet>
+                        </div>
                     </Group>
                     <Group title="Recent activity" description="What the System recorded last."
                         aside={<Button size="small" depth="flat" onPress={() => frame.go("logs")}>All logs<ChevronRight /></Button>}>
