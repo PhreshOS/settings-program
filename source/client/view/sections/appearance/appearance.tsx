@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useSystemAppearance } from "@phreshos/react"
-import { AlertDialog, AppLayout, Button, Flex, GridList, Spinner, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { readyAppearances, sameAppearance, type AppearanceEntry } from "@client/core/appearances"
@@ -76,7 +76,8 @@ function Gallery() {
                         <PreviewPair look={entry.appearance} pictures={entry.posters ?? entry.pictures} />
                         <Flex align="center" gap="xsmall">
                             <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
-                            {entry.key === applyingKey && <Spinner size="xsmall" label={`Applying ${entry.name}`} />}
+                            {/* The one in use carries its check here; the one being applied, a Spinner. */}
+                            <GridList.Mark pending={entry.key === applyingKey} />
                         </Flex>
                         {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
                         {entry.removable
@@ -91,6 +92,7 @@ function Gallery() {
                         <Flex align="baseline" gap="xsmall" style={{ flexWrap: "wrap" }}>
                             <Text size="small" style={{ fontWeight: 600 }}>Current</Text>
                             <Text size="xsmall" tone="secondary">(In use, not saved)</Text>
+                            <GridList.Mark />
                         </Flex>
                         {/* What can be done with it stands where a description would. */}
                         <Flex gap="small" justify="end">
