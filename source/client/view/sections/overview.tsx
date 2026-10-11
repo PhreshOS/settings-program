@@ -55,7 +55,8 @@ export default function Overview() {
                 </GridList>
 
                 <Grid columns="repeat(auto-fit, minmax(min(20rem, 100%), 1fr))" gap="large" style={{ alignItems: "start" }}>
-                    <DesktopPreferences update={updating.update} compact />
+                    <DesktopPreferences update={updating.update} compact
+                        aside={<Button size="small" depth="flat" onPress={() => frame.go("desktop")}>All preferences<ChevronRight /></Button>} />
                     <Group title="Agents" description="Give your agent this, and it works in PhreshOS beside you."
                         aside={<Button size="small" depth="flat" onPress={() => frame.go("agents")}>Details<ChevronRight /></Button>}>
                         <div style={{ padding: space.medium }}>

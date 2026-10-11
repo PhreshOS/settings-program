@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { desktopPreferencesLimits, type DesktopPreferencesUpdate } from "@phreshos/core"
 import { useDesktopPreferences, useResolvedDesktopPreferences } from "@phreshos/react"
 import { AppLayout, SegmentedControl, Slider } from "@phreshos/react-ui"
@@ -37,11 +38,11 @@ export function useDesktopUpdate() {
 }
 
 /** Theme, animations, and scale of this Desktop; `compact` leaves the scale out. */
-export function DesktopPreferences({ update, compact = false }: Readonly<{ update: (update: DesktopPreferencesUpdate) => void, compact?: boolean }>) {
+export function DesktopPreferences({ update, compact = false, aside }: Readonly<{ update: (update: DesktopPreferencesUpdate) => void, compact?: boolean, aside?: ReactNode }>) {
     const preferences = useDesktopPreferences()
     const resolved = useResolvedDesktopPreferences()
 
-    return <Group title="This Desktop" description="Only this browser shows these.">
+    return <Group title="This Desktop" description="Only this browser shows these." aside={aside}>
         <Row label="Theme" truncate description={preferences.theme === "browser" ? `Follows the browser, now ${resolved.theme}.` : undefined}>
             <SegmentedControl aria-label="Theme" size="small" value={preferences.theme} onChange={value => update({ theme: value as "browser" | "light" | "dark" })}>
                 <SegmentedControl.Item id="browser"><Monitor />Browser</SegmentedControl.Item>
