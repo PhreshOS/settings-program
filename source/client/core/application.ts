@@ -9,7 +9,8 @@ export type ProgramDetails = Readonly<{
     program: Program
     permissions: Permissions
     startup: Launch | null
-    pinned: boolean
+    /** When it was pinned to the Taskbar, or `null` when it is not. */
+    pinnedAt: Date | null
 }>
 
 /** A valid Session with the browser Connections it signs in. */
@@ -104,10 +105,10 @@ export default class Application {
     }
 
     public async program(program: Program): Promise<ProgramDetails> {
-        const [permissions, startup, pinned] = await Promise.all([
-            program.permissions.all(), program.startup.get(), program.pinned()
+        const [permissions, startup, pinnedAt] = await Promise.all([
+            program.permissions.all(), program.startup.get(), program.pinnedAt()
         ])
-        return { program, permissions, startup, pinned }
+        return { program, permissions, startup, pinnedAt }
     }
 
     /** Calls `change` whenever the installed Programs, or what Settings shows about them, change. */

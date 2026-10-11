@@ -35,7 +35,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
     const application = useApplication()
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
-    const { program, startup, pinned } = details
+    const { program, startup, pinnedAt } = details
     const { busy, run } = useControls(onProblem, onChange)
 
     return <Page>
@@ -62,7 +62,7 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
                     : <Button size="small" disabled={busy("startup")} onPress={() => run("startup", () => application.setStartup(program))}>Start with the System</Button>}
             </Row>
             <Row label="Pinned to the Taskbar">
-                <Switch aria-label="Pinned to the Taskbar" checked={pinned} disabled={busy("pin")} onChange={on => run("pin", () => application.pin(program, on))} />
+                <Switch aria-label="Pinned to the Taskbar" checked={pinnedAt !== null} disabled={busy("pin")} onChange={on => run("pin", () => application.pin(program, on))} />
             </Row>
         </Group>
 
