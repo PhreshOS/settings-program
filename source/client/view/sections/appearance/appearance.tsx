@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useSystemAppearance } from "@phreshos/react"
-import { AlertDialog, AppLayout, Button, Flex, GridList, Spinner, Text, useAppearance, useScale } from "@phreshos/react-ui"
+import { AlertDialog, AppLayout, Button, Flex, GridList, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { Plus } from "@phreshos/react-ui/icons"
 import usePromise from "@libs/react-promise"
 import { readyAppearances, sameAppearance, type AppearanceEntry } from "@client/core/appearances"
@@ -72,12 +72,9 @@ function Gallery() {
                         if (key === create) go("appearance/customize")
                         else if (key && key !== current) void applying.safeExecute(key)
                     }}>
-                    {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name}>
+                    {entries.map(entry => <GridList.Item key={entry.key} id={entry.key} textValue={entry.name} pending={entry.key === applyingKey}>
                         <PreviewPair look={entry.appearance} pictures={entry.posters ?? entry.pictures} />
-                        <Flex align="center" gap="xsmall">
-                            <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
-                            {entry.key === applyingKey && <Spinner size="xsmall" label={`Applying ${entry.name}`} />}
-                        </Flex>
+                        <Text size="small" style={{ fontWeight: 600 }}>{entry.name}</Text>
                         {/* A ready one says what it is like; one of the owner's own offers what can be done with it. */}
                         {entry.removable
                             ? <Flex gap="small" justify="end">
@@ -97,7 +94,8 @@ function Gallery() {
                             <Button size="xsmall" color="primary" onPress={() => setSaving(true)}>Save</Button>
                         </Flex>
                     </GridList.Item>}
-                    <GridList.Item id={create} textValue="New Appearance">
+                    {/* Its outline fills the card, as tall as the cards beside it. */}
+                    <GridList.Item id={create} textValue="New Appearance" style={{ alignContent: "stretch" }}>
                         <Flex direction="column" align="center" justify="center" gap="xsmall" style={{
                             minHeight: "6.5rem", borderRadius: "0.5rem",
                             border: "1.5px dashed color-mix(in oklab, currentColor 28%, transparent)"
