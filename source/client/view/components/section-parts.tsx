@@ -67,12 +67,13 @@ export function Group({ title, description, aside, children }: Readonly<{ title:
     const space = useScale(useAppearance().spacing)
 
     return <Flex direction="column" gap="small" style={{ minWidth: 0 }}>
-        <Flex align="center" gap="small" style={{ minHeight: space.xlarge, paddingInline: space.xsmall }}>
-            <Flex direction="column" style={{ flex: "1 1 auto", minWidth: 0 }}>
+        {/* Where the words would be squeezed beside the aside, it goes below them, still at the end. */}
+        <Flex align="center" gap="small" style={{ flexWrap: "wrap", minHeight: space.xlarge, paddingInline: space.xsmall }}>
+            <Flex direction="column" style={{ flex: "1 1 10rem", minWidth: 0 }}>
                 <Text size="small" style={{ fontWeight: 600 }}>{title}</Text>
                 {description != null && <Text size="small" tone="secondary">{description}</Text>}
             </Flex>
-            {aside}
+            {aside != null && <div style={{ flex: "none", marginInlineStart: "auto" }}>{aside}</div>}
         </Flex>
         <Surface depth="flat" color="default" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", minWidth: 0 }}>{children}</Surface>
     </Flex>

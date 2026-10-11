@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { appearanceLimits, systemWallpapers, wallpaperSizeLimit, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
 import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
@@ -99,8 +99,10 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
             <Page>
                 <Group title="Colors" aside={<Columns />}>
                     {(Object.keys(colorNames) as AppearanceColor[]).map(role => <Row key={role} label={colorNames[role]}>
+                        <Modes>
                         {modes.map(mode => <Swatch key={mode} label={`${colorNames[role]}, ${mode}`} value={(draft.colors[mode] ?? draft.colors.light)[role]}
                             onChange={value => themed("colors", mode, { [role]: value })} />)}
+                        </Modes>
                     </Row>)}
                 </Group>
                 <Group title="Shape">
@@ -113,14 +115,18 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                 </Group>
                 <Group title="Material" description="How every surface lets through what is behind it." aside={<Columns />}>
                     {(Object.keys(materialNames) as (keyof AppearanceMaterial)[]).map(key => <Row key={key} label={materialNames[key]}>
+                        <Modes>
                         {modes.map(mode => <Measure key={mode} label={`${materialNames[key]}, ${mode}`} value={(draft.material[mode] ?? draft.material.light)[key]}
                             range={appearanceLimits.material[key]} onChange={value => themed("material", mode, { [key]: value })} />)}
+                        </Modes>
                     </Row>)}
                 </Group>
                 <Group title="Shadow" description="Beneath raised surfaces, windows included." aside={<Columns />}>
                     {(Object.keys(shadowNames) as (keyof AppearanceShadow)[]).map(key => <Row key={key} label={shadowNames[key]}>
+                        <Modes>
                         {modes.map(mode => <Measure key={mode} label={`Shadow ${shadowNames[key].toLowerCase()}, ${mode}`} value={(draft.shadow[mode] ?? draft.shadow.light)[key]}
                             range={appearanceLimits.shadow[key]} onChange={value => themed("shadow", mode, { [key]: value })} />)}
+                        </Modes>
                     </Row>)}
                 </Group>
                 <Group title="Motion">
@@ -130,12 +136,14 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                 </Group>
                 <Group title="Wallpapers" description="An image, a video, or an offline HTML page, up to 50 MB." aside={<Columns />}>
                     {(Object.keys(wallpaperNames) as (keyof AppearanceWallpapers)[]).map(place => <Row key={place} label={wallpaperNames[place]}>
+                        <Modes>
                         {modes.map(mode => <FileTrigger key={mode} accept={wallpaperFiles} onSelect={files => void chooseWallpaper(mode, place, files[0])}>
                             <Button size="small" aria-label={`${wallpaperNames[place]} wallpaper, ${mode}`} pending={uploading === `${mode}:${place}`}
                                 style={{ width: "6.5rem", height: "3.75rem", padding: 0, overflow: "hidden" }}>
                                 <Thumbnail file={draft.wallpapers[mode][place]} />
                             </Button>
                         </FileTrigger>)}
+                        </Modes>
                     </Row>)}
                     <Row label="The System's own" description="Puts back the wallpapers this release comes with.">
                         <Button size="small" disabled={sameAppearance(draft.wallpapers, systemWallpapers)} onPress={() => change({ ...draft, wallpapers: systemWallpapers })}>Use</Button>
@@ -174,6 +182,14 @@ function Columns() {
     return <Flex gap="small" style={{ paddingInlineEnd: space.medium }}>
         {modes.map(mode => <Text key={mode} size="xsmall" tone="secondary" style={{ width: "6.5rem" }}>{mode === "light" ? "Light" : "Dark"}</Text>)}
     </Flex>
+}
+
+/**
+ * A row's light and dark values, together and in the order of the column heads: where the row is too
+ * narrow for them beside its label, they go below it as one, still under the heads.
+ */
+function Modes({ children }: Readonly<{ children: ReactNode }>) {
+    return <Flex gap="small" style={{ flex: "none", marginInlineStart: "auto" }}>{children}</Flex>
 }
 
 /** A wallpaper, small: a picture or a video's first frame; a page is named, since it runs only on the Desktop. */
