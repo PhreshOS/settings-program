@@ -1,8 +1,10 @@
-import { defaultAppearance, type Appearance, type AppearanceColors, type AppearanceMaterial, type AppearanceShadow, type AppearanceTaskbar, type ThemedValue } from "@phreshos/core"
+import { defaultAppearance, type Appearance, type AppearanceColors, type AppearanceMaterial, type AppearanceTaskbar, type ThemedValue } from "@phreshos/core"
 import mossLight from "@client/assets/wallpapers/moss-light.svg?url"
 import mossDark from "@client/assets/wallpapers/moss-dark.svg?url"
 import frostLight from "@client/assets/wallpapers/frost-light.jpg?url"
 import frostDark from "@client/assets/wallpapers/frost-dark.jpg?url"
+import shallowsLight from "@client/assets/wallpapers/shallows-light.jpg?url"
+import shallowsDark from "@client/assets/wallpapers/shallows-dark.jpg?url"
 import bloomLight from "@client/assets/wallpapers/bloom-light.jpg?url"
 import bloomDark from "@client/assets/wallpapers/bloom-dark.jpg?url"
 import duskLight from "@client/assets/wallpapers/dusk-light.svg?url"
@@ -39,7 +41,7 @@ function both<Value>(change: (value: Value) => Value, value: ThemedValue<Value>)
     return { light: change(value.light), dark: change(value.dark ?? value.light) }
 }
 
-const shadow = (change: Partial<AppearanceShadow>) => both(value => ({ ...value, ...change }), base.shadow)
+const shadow = (strength: number): ThemedValue<number> => ({ light: strength, dark: strength })
 const material = (change: Partial<AppearanceMaterial>) => both(value => ({ ...value, ...change }), base.material)
 const colors = (light: Partial<AppearanceColors>, dark: Partial<AppearanceColors>): ThemedValue<AppearanceColors> =>
     ({ light: { ...base.colors.light, ...light }, dark: { ...base.colors.dark!, ...dark } })
@@ -48,17 +50,17 @@ const taskbar = (change: Partial<AppearanceTaskbar>): AppearanceTaskbar => ({ ..
 export const readyAppearances: readonly AppearanceEntry[] = [
     { id: "sprout", name: "Sprout", description: "The look this release comes with.", appearance: base },
     { id: "compact", name: "Compact", description: "Tighter spacing and corners.", appearance: { ...base, spacing: 8, radius: 6 } },
-    { id: "calm", name: "Calm", description: "Slower motion, rounder corners, softer shadows.", appearance: { ...base, radius: 14, tempo: 2, shadow: shadow({ blur: 24, opacity: 0.05 }) } },
+    { id: "calm", name: "Calm", description: "Slower motion, rounder corners, softer shadows.", appearance: { ...base, radius: 14, tempo: 2, shadow: shadow(0.05) } },
     {
         id: "contrast", name: "Contrast", description: "Stronger text and more opaque surfaces.",
         appearance: {
             ...base,
             colors: colors({ background: "#ffffff", foreground: "#120d09", default: "#ffffff" }, { background: "#000000", foreground: "#ffffff", default: "#0b1420" }),
             material: material({ opacity: 0.96 }),
-            shadow: shadow({ opacity: 0.18 })
+            shadow: shadow(0.18)
         }
     },
-    { id: "solid", name: "Solid", description: "Opaque surfaces without frost or grain. The lightest to draw.", appearance: { ...base, material: material({ opacity: 1, backdrop: 0, saturation: 1, grain: 0, distortion: 0 }) } },
+    { id: "solid", name: "Solid", description: "Opaque surfaces without frost or grain. The lightest to draw.", appearance: { ...base, material: material({ opacity: 1, backdropBlur: 0, backdropSaturation: 1, grain: 0, refraction: 0 }) } },
     {
         id: "moss", name: "Moss", description: "Green and round, over rolling hills.", pictures: { light: mossLight, dark: mossDark },
         appearance: {
@@ -77,8 +79,25 @@ export const readyAppearances: readonly AppearanceEntry[] = [
                 { background: "#eef4fb", foreground: "#14202e", default: "#f8fbff", primary: "#4c8dff", secondary: "#8a6cff" },
                 { background: "#070d1c", foreground: "#e6eefb", default: "#121a2c", primary: "#6aa4ff", secondary: "#a48cff" }),
             radius: 16,
-            material: material({ opacity: 0.7, backdrop: 18, saturation: 1.6, grain: 0.02 }),
+            material: material({ opacity: 0.7, backdropBlur: 18, backdropSaturation: 1.6, grain: 0.02 }),
             taskbar: taskbar({ overlay: true })
+        }
+    },
+    {
+        id: "shallows", name: "Shallows", description: "Clear glass over clear water, bending the stones beneath; unhurried motion, the Taskbar on the left. Heavy to draw.",
+        pictures: { light: shallowsLight, dark: shallowsDark },
+        appearance: {
+            ...base,
+            colors: colors(
+                { background: "#eef4f7", foreground: "#132230", default: "#f8fbfd", primary: "#2b8fb0", secondary: "#5a7fa8" },
+                { background: "#081221", foreground: "#e3ecf5", default: "#111d2e", primary: "#5fb6d6", secondary: "#8aa8d8" }),
+            radius: 16,
+            // Little blur, so the refraction stays visible: the glass bends the stones rather than
+            // hiding them; a little more opacity than clear glass, as the stones are busy behind text.
+            material: material({ opacity: 0.62, backdropBlur: 3, backdropSaturation: 1.3, refraction: 48, grain: 0.02 }),
+            shadow: shadow(0.1),
+            tempo: 1.5,
+            taskbar: taskbar({ position: "left" })
         }
     },
     {
@@ -100,7 +119,7 @@ export const readyAppearances: readonly AppearanceEntry[] = [
             colors: colors(
                 { background: "#fbf1ea", foreground: "#2b1620", default: "#fff8f3", primary: "#e8643a", secondary: "#9a4a8a" },
                 { background: "#150c1c", foreground: "#f3e2e2", default: "#22132a", primary: "#ff7a45", secondary: "#c070b0" }),
-            shadow: shadow({ blur: 18, opacity: 0.16 }),
+            shadow: shadow(0.16),
             taskbar: taskbar({ position: "top" })
         }
     },
@@ -113,8 +132,8 @@ export const readyAppearances: readonly AppearanceEntry[] = [
                 { background: "#151516", foreground: "#ececec", default: "#202022", primary: "#d8d8d8", secondary: "#9a9a9a" }),
             radius: 6,
             spacing: 10,
-            material: material({ opacity: 1, backdrop: 0, saturation: 1, grain: 0.04, distortion: 0 }),
-            shadow: shadow({ blur: 6, opacity: 0.14 }),
+            material: material({ opacity: 1, backdropBlur: 0, backdropSaturation: 1, grain: 0.04, refraction: 0 }),
+            shadow: shadow(0.14),
             taskbar: taskbar({ position: "left" })
         }
     },

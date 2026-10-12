@@ -1,5 +1,5 @@
 import { useProgramStore } from "@phreshos/react"
-import type { Appearance } from "@phreshos/core"
+import { readSavedAppearance, type Appearance } from "@phreshos/core"
 import { freeName, type AppearanceEntry } from "@client/core/appearances"
 
 /** The Appearances the owner saved, kept in Settings' store. */
@@ -8,7 +8,8 @@ export function useLibrary() {
 
     return {
         loaded: saved !== undefined,
-        saved: saved ?? [],
+        // Kept before a change to the Appearance's shape, each one reads as this System understands it.
+        saved: (saved ?? []).map(entry => ({ ...entry, appearance: readSavedAppearance(entry.appearance) })),
         /** Keeps an Appearance under a free name and returns it. */
         async save(name: string, appearance: Appearance) {
             const entry: AppearanceEntry = { id: crypto.randomUUID(), name: freeName(name, (saved ?? []).map(item => item.name)), appearance }

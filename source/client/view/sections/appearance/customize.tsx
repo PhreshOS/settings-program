@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { appearanceLimits, systemWallpapers, wallpaperSizeLimit, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceShadow, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
+import { appearanceLimits, systemWallpapers, wallpaperSizeLimit, type Appearance, type AppearanceColor, type AppearanceMaterial, type AppearanceWallpapers, type TaskbarPosition, type Theme } from "@phreshos/core"
 import { useSystemAppearance } from "@phreshos/react"
 import { AppLayout, Button, ColorArea, ColorField, ColorPicker, ColorSlider, FileTrigger, Flex, SegmentedControl, Slider, Switch, Text, useAppearance, useScale } from "@phreshos/react-ui"
 import { PanelBottom, PanelLeft, PanelRight, PanelTop, PencilLine, Save, Undo2 } from "@phreshos/react-ui/icons"
@@ -15,16 +15,12 @@ import { wallpaperFiles, wallpaperSource } from "./wallpaper"
 const modes: readonly Theme[] = ["light", "dark"]
 
 const colorNames: Readonly<Record<AppearanceColor, string>> = {
-    background: "Background", foreground: "Text", default: "Surface", primary: "Primary", secondary: "Secondary",
+    background: "Background", foreground: "Foreground", default: "Default", primary: "Primary", secondary: "Secondary",
     success: "Success", warning: "Warning", danger: "Danger", info: "Info"
 }
 
 const materialNames: Readonly<Record<keyof AppearanceMaterial, string>> = {
-    opacity: "Opacity", backdrop: "Backdrop blur", saturation: "Saturation", grain: "Grain", grainAmount: "Grain amount", distortion: "Distortion"
-}
-
-const shadowNames: Readonly<Record<keyof AppearanceShadow, string>> = {
-    opacity: "Opacity", blur: "Blur", x: "Across", y: "Down", spread: "Spread"
+    grain: "Grain", opacity: "Opacity", backdropBlur: "Backdrop blur", backdropSaturation: "Backdrop saturation", refraction: "Refraction"
 }
 
 const wallpaperNames: Readonly<Record<keyof AppearanceWallpapers, string>> = { signIn: "Sign-in", desktop: "Desktop" }
@@ -67,7 +63,7 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
         }, 250)
     }
 
-    const themed = <Key extends "colors" | "material" | "shadow" | "wallpapers">(key: Key, mode: Theme, value: Partial<NonNullable<Appearance[Key]["light"]>>) =>
+    const themed = <Key extends "colors" | "material" | "wallpapers">(key: Key, mode: Theme, value: Partial<NonNullable<Appearance[Key]["light"]>>) =>
         change({ ...draft, [key]: { ...draft[key], [mode]: { ...(draft[key][mode] ?? draft[key].light), ...value } } })
 
     const taskbar = draft.taskbar
@@ -121,13 +117,13 @@ export default function Customize({ editing }: Readonly<{ editing?: string }>) {
                         </Modes>
                     </Row>)}
                 </Group>
-                <Group title="Shadow" description="Beneath raised surfaces, windows included." aside={<Columns />}>
-                    {(Object.keys(shadowNames) as (keyof AppearanceShadow)[]).map(key => <Row key={key} label={shadowNames[key]}>
+                <Group title="Shadow" description="Beneath raised surfaces, windows included. It falls evenly on every side; 0 is none." aside={<Columns />}>
+                    <Row label="Strength">
                         <Modes>
-                        {modes.map(mode => <Measure key={mode} label={`Shadow ${shadowNames[key].toLowerCase()}, ${mode}`} value={(draft.shadow[mode] ?? draft.shadow.light)[key]}
-                            range={appearanceLimits.shadow[key]} onChange={value => themed("shadow", mode, { [key]: value })} />)}
+                        {modes.map(mode => <Measure key={mode} label={`Shadow strength, ${mode}`} value={draft.shadow[mode] ?? draft.shadow.light}
+                            range={appearanceLimits.shadow} onChange={value => change({ ...draft, shadow: { ...draft.shadow, [mode]: value } })} />)}
                         </Modes>
-                    </Row>)}
+                    </Row>
                 </Group>
                 <Group title="Motion">
                     <Row label="Tempo" description="1 is the designed pace; higher is slower.">

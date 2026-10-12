@@ -18,7 +18,7 @@ export default function Preview({ look, mode, height = "4rem", pictures }: Reado
         <div style={{
             position: "absolute", inset: "0.5rem 1rem 0.5rem 0.5rem", borderRadius: radius, display: "flex", gap, padding: gap,
             background: `color-mix(in oklab, ${colors.default} ${Math.round(material.opacity * 100)}%, transparent)`,
-            boxShadow: `${shadow.x / 3}px ${shadow.y / 3}px ${shadow.blur / 3}px color-mix(in oklab, ${colors.foreground} ${Math.round(Math.max(shadow.opacity, 0.04) * 100)}%, transparent), 0 0 0 1px color-mix(in oklab, ${colors.foreground} 8%, transparent)`
+            boxShadow: `0 0 4px color-mix(in oklab, ${colors.foreground} ${Math.round(Math.max(shadow, 0.04) * 100)}%, transparent), 0 0 0 1px color-mix(in oklab, ${colors.foreground} 8%, transparent)`
         }}>
             <div style={{ display: "grid", alignContent: "start", gap: 3, width: "35%" }}>
                 <span style={{ height: 5, borderRadius: 3, background: colors.primary }} />

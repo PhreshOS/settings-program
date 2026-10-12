@@ -5,11 +5,11 @@ import { test } from "vitest"
 
 test("appearance contract", async () => {
   assert.deepEqual(parseAppearance(serializeAppearance(defaultAppearance)), defaultAppearance)
-  assert(Object.isFrozen(parseAppearance(serializeAppearance(defaultAppearance)).shadow.dark))
+  assert(Object.isFrozen(parseAppearance(serializeAppearance(defaultAppearance)).shadow))
 
   const custom = {
       ...defaultAppearance,
-      shadow: { ...defaultAppearance.shadow, light: { x: -4, y: 12, blur: 32, spread: -2, opacity: 0.3 } },
+      shadow: { ...defaultAppearance.shadow, light: 0.3 },
       taskbar: { position: "left" as const, size: 62, overlay: true },
       wallpapers: { ...defaultAppearance.wallpapers, light: { ...defaultAppearance.wallpapers.light, desktop: "12345678-1234-1234-1234-123456789abc.png" } }
   }
@@ -19,11 +19,11 @@ test("appearance contract", async () => {
       assert.throws(() => parseAppearance(JSON.stringify(value)))
   }
   assert.deepEqual(parseAppearance(JSON.stringify({ ...defaultAppearance, extension: true })), defaultAppearance)
-  for (const value of ["12", -1, 97]) {
+  for (const value of ["0.1", -1, 0.5]) {
       assert.throws(() => parseAppearance(JSON.stringify({
           ...defaultAppearance,
-          shadow: { ...defaultAppearance.shadow, light: { ...defaultAppearance.shadow.light, blur: value } }
-      })), /Appearance.shadow.light.blur/)
+          shadow: { ...defaultAppearance.shadow, light: value }
+      })), /Appearance.shadow.light/)
   }
   assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, spacing: 100 })), /Appearance.spacing/)
   assert.throws(() => parseAppearance(JSON.stringify({ ...defaultAppearance, taskbar: { ...defaultAppearance.taskbar, position: "center" } })), /Appearance taskbar position/)
@@ -37,7 +37,7 @@ test("appearance contract", async () => {
       ...defaultAppearance,
       material: { ...defaultAppearance.material, dark: { ...defaultAppearance.material.dark, opacity: 2 } }
   })), /Appearance.material.dark.opacity/)
-  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace(`"blur": ${defaultAppearance.shadow.light.blur}`, '"blur": 1e999')), /finite number/)
+  assert.throws(() => parseAppearance(serializeAppearance(defaultAppearance).replace(`"spacing": ${defaultAppearance.spacing}`, '"spacing": 1e999')), /finite number/)
   assert.deepEqual(
       parseAppearance(serializeAppearance(defaultAppearance).replace('"colors": {', '"__proto__": {}, "colors": {')),
       defaultAppearance
