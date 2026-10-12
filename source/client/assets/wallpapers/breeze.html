@@ -318,6 +318,8 @@
   }
 
   function frame(time, dt) {
+    // A page not laid out yet has no size: there is nothing to draw until it has one.
+    if (!W || !H) return
     paintSky()
     ctx.drawImage(sky, 0, 0, W, H)
     drawClouds(dt)
@@ -328,6 +330,8 @@
 
   function resize() {
     W = window.innerWidth; H = window.innerHeight
+    // Not laid out yet: the size arrives with a resize, and the scene is built then.
+    if (!W || !H) return
     // A soft scene needs no more pixels than the screen's own; large screens take fewer.
     DPR = Math.min(window.devicePixelRatio || 1, W * H > 1920 * 1200 ? 1 : 1.5)
     canvas.width = Math.max(2, Math.floor(W * DPR)); canvas.height = Math.max(2, Math.floor(H * DPR))
@@ -341,6 +345,8 @@
   function tick(now) {
     running = 0
     if (document.hidden) return
+    // A page opened before it was laid out may not hear a resize when its size arrives: it looks.
+    if (W !== window.innerWidth || H !== window.innerHeight) resize()
     if (now - drawn >= 1000 / 30 - 1) {
       var dt = Math.min(0.06, (now - last) / 1000 || 1 / 30)
       last = now; drawn = now
