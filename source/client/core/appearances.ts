@@ -11,6 +11,8 @@ import duskLight from "@client/assets/wallpapers/dusk-light.svg?url"
 import duskDark from "@client/assets/wallpapers/dusk-dark.svg?url"
 import stoneLight from "@client/assets/wallpapers/stone-light.svg?url"
 import stoneDark from "@client/assets/wallpapers/stone-dark.svg?url"
+import dewLight from "@client/assets/wallpapers/dew-light.jpg?url"
+import dewDark from "@client/assets/wallpapers/dew-dark.jpg?url"
 import breeze from "@client/assets/wallpapers/breeze.html?url"
 import breezeLight from "@client/assets/wallpapers/breeze-light.jpg?url"
 import breezeDark from "@client/assets/wallpapers/breeze-dark.jpg?url"
@@ -98,6 +100,21 @@ export const readyAppearances: readonly AppearanceEntry[] = [
             shadow: shadow(0.1),
             tempo: 1.5,
             taskbar: taskbar({ position: "left" })
+        }
+    },
+    {
+        id: "dew", name: "Dew", description: "Glossy glass over a dewy meadow and a clear sky; the Taskbar over the windows. Heavy to draw.",
+        pictures: { light: dewLight, dark: dewDark },
+        appearance: {
+            ...base,
+            colors: colors(
+                { background: "#eaf6fd", foreground: "#0f2a3d", default: "#f6fbff", primary: "#1f9be0", secondary: "#4caf2a" },
+                { background: "#061423", foreground: "#e2f1fb", default: "#0e2133", primary: "#4cb8f5", secondary: "#7ccf4a" }),
+            radius: 12,
+            // Bright frosted glass that bends a little of what lies behind it, as Aero glass did.
+            material: material({ opacity: 0.55, backdropBlur: 14, backdropSaturation: 1.8, refraction: 24, grain: 0 }),
+            shadow: shadow(0.12),
+            taskbar: taskbar({ overlay: true })
         }
     },
     {
