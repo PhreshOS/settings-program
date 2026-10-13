@@ -1,7 +1,7 @@
 import { desktop, system } from "@phreshos/client"
 import type {
-    AppearanceUpdate, AuthenticationCredentials, Cleanup, ClientService, Connection, DesktopPreferencesUpdate, Endpoint, IconSize, Launch, PermissionName,
-    PermissionRequestInput, Permissions, Process, Program, ProgramLogRecord, ServerService, ServiceAddress, ServiceProgramMetadata, Session, SystemLogRecord
+    AppearanceUpdate, AuthenticationCredentials, Cleanup, Connection, DesktopPreferencesUpdate, Endpoint, IconSize, Launch, PermissionName,
+    PermissionRequestInput, Permissions, Process, Program, ProgramLogRecord, Session, SystemLogRecord
 } from "@phreshos/core"
 
 /** An installed Program with what Settings shows and changes about it. */
@@ -27,7 +27,7 @@ export type SessionDetails = Readonly<{
 }>
 
 /** One side of a Process as it is now; `null` when its Program does not declare that side. */
-export type EndpointState = Readonly<{ running: boolean, service: boolean }> | null
+export type EndpointState = Readonly<{ running: boolean, service: string | false }> | null
 
 /** A live Process with its Program and the state of its two sides. */
 export type ProcessDetails = Readonly<{
@@ -37,12 +37,12 @@ export type ProcessDetails = Readonly<{
     client: EndpointState
 }>
 
-/** A ready Service: its address, its Program, and the identity of the Process behind it. */
+/** A Service held now: its name, the side of the Process holding it, that Process, and its Program. */
 export type ServiceDetails = Readonly<{
-    service: ServerService | ClientService
-    address: ServiceAddress
-    program: ServiceProgramMetadata
-    process: string | null
+    name: string
+    endpoint: "server" | "client"
+    process: Process
+    program: Program
 }>
 
 /** Owns Settings operations and reads, and coordinates them with their System authority. */
@@ -102,9 +102,9 @@ export default class Application {
         return await system.uploads.stat(file) !== null
     }
 
-    /** Every installed Program, by name. */
+    /** Every Program the System knows, installed or attached from its project, by name. */
     public async programs(): Promise<ProgramDetails[]> {
-        const programs = await system.program.list({ installed: true })
+        const programs = await system.program.list()
         const details = await Promise.all(programs.map(program => this.program(program)))
         return details.sort((first, second) => first.program.name.localeCompare(second.program.name))
     }
@@ -156,6 +156,11 @@ export default class Application {
     }
 
     /** Uninstalls a Program; `purge` also removes its storage. */
+    /** Ends a Program's Processes and has the System forget it, such as one attached from its project. */
+    public forget(program: Program) {
+        return program.forget()
+    }
+
     public async uninstall(program: Program, purge: boolean) {
         for await (const _chunk of program.uninstall({ purge })) { /* The owner sees the result, not the command's output. */ }
     }
@@ -173,8 +178,9 @@ export default class Application {
     }
 
     /** The installed Programs, as they are; what they open comes with them. */
-    public installed() {
-        return system.program.list({ installed: true })
+    /** Every Program the System knows, installed or attached from its project. */
+    public known() {
+        return system.program.list()
     }
 
     /** The default Program of each media type and family. */
@@ -243,7 +249,7 @@ export default class Application {
     private async processDetails(process: Process): Promise<ProcessDetails> {
         const program = process.program()
         const state = async (declared: boolean, endpoint: Endpoint): Promise<EndpointState> => declared
-            ? { running: await endpoint.running(), service: await endpoint.isService() }
+            ? { running: await endpoint.running(), service: await endpoint.service() }
             : null
         const [server, client] = await Promise.all([state(program.server !== null, process.server), state(program.client !== null, process.client)])
         return { process, program, server, client }
@@ -292,22 +298,18 @@ export default class Application {
         return program.logs.subscribe("log", line => { if (process === null || line.process === process) record(line) })
     }
 
-    /** Every ready Service, by Program name and then by name. */
+    /** Every Service held now, read from the running Processes: by name. */
     public async services(): Promise<ServiceDetails[]> {
-        const [services, processes] = await Promise.all([system.service.list(), system.process.list()])
-        const details = await Promise.all(services.map(async service => {
-            const address = service.address()
-            const behind = processes.find(process => process.program().identity === address.program && process.name === address.process)
-            return { service, address, program: await service.programMetadata(), process: behind?.identity ?? null }
+        const processes = await system.process.list()
+        const held = await Promise.all(processes.flatMap(process => {
+            const program = process.program()
+            return ([["server", program.server && process.server], ["client", program.client && process.client]] as const)
+                .flatMap(([endpoint, side]) => side ? [(async () => {
+                    const name = await side.running() ? await side.service() : false
+                    return name === false ? [] : [{ name, endpoint, process, program }]
+                })()] : [])
         }))
-        return details.sort((first, second) => first.program.name.localeCompare(second.program.name)
-            || first.address.process.localeCompare(second.address.process)
-            || first.address.endpoint.localeCompare(second.address.endpoint))
-    }
-
-    public followServices(change: () => void) {
-        const stops = (["available", "unavailable"] as const).map(event => system.service.subscribe(event, () => change()))
-        return () => stops.forEach(stop => stop())
+        return held.flat().sort((first, second) => first.name.localeCompare(second.name))
     }
 
     /** Signs in a connected browser without a password, such as one the owner approves from here. */

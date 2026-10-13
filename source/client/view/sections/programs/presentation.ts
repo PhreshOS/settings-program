@@ -3,7 +3,8 @@ import type { PermissionName } from "@phreshos/core"
 /** How each permission is named to the owner, as the Desktop names it when a Program asks. */
 export const permissionPresentation = {
     all: { title: "All permissions", description: "Every permission, including assigning them and running shell commands." },
-    services: { title: "Services", description: "Reach Services by their Process and Service name." },
+    consumeServices: { title: "Using Services", description: "Reach Services by their names." },
+    provideServices: { title: "Providing Services", description: "Offer Services under their names, taking a name from whoever holds it." },
     programs: { title: "Programs", description: "See and manage every Program or selected Programs." },
     layers: { title: "Window layers", description: "Open windows below, above, or behind the others." },
     network: { title: "Network", description: "Send requests through the System, to every address or selected ones." },
