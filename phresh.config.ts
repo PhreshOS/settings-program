@@ -4,7 +4,7 @@ export default defineConfig({
     identity: "settings",
     name: "Settings",
     description: "Configure PhreshOS.",
-    version: "0.8.2",
+    version: "0.8.3",
     icon: "icon.png",
     categories: ["System"],
     keywords: ["settings", "appearance", "theme", "programs", "permissions", "sessions"],
