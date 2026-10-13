@@ -8,7 +8,7 @@ import { useFrame } from "../../settings/frame"
 import { ago } from "../overview"
 import { count } from "../programs/programs"
 import ProcessView from "./process"
-import { EndProcess, Side } from "./parts"
+import { EndProcess, Side, heldServices } from "./parts"
 
 /** The live Processes, and one of them when the address names it. */
 export default function Processes({ rest }: Readonly<{ rest: string | null }>) {
@@ -43,6 +43,7 @@ function ProcessList() {
                         {!narrow && <Table.Column id="started" width={space.xlarge * 3.5}>Started</Table.Column>}
                         <Table.Column id="server" width={space.xlarge * 3.5}>Server</Table.Column>
                         <Table.Column id="client" width={space.xlarge * 3.5}>Client</Table.Column>
+                        {!narrow && <Table.Column id="service" width={space.xlarge * 4.5}>Service</Table.Column>}
                         <Table.Column id="end" aria-label="End" width={space.xlarge * 2.5}> </Table.Column>
                     </Table.Header>
                     <Table.Body>
@@ -57,6 +58,9 @@ function ProcessList() {
                             {!narrow && <Table.Cell><Text tone="secondary" className="tabular">{ago(process.startedAt.getTime())}</Text></Table.Cell>}
                             <Table.Cell><Side state={server} /></Table.Cell>
                             <Table.Cell><Side state={client} /></Table.Cell>
+                            {!narrow && <Table.Cell>{heldServices(server, client)
+                                ? <Text tone="secondary" size="small" className="mono" truncate>{heldServices(server, client)}</Text>
+                                : <Text tone="secondary">—</Text>}</Table.Cell>}
                             <Table.Cell><EndProcess process={process} size="xsmall" depth="none" onProblem={setProblem} /></Table.Cell>
                         </Table.Row>)}
                     </Table.Body>

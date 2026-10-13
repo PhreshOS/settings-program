@@ -7,14 +7,15 @@ import Output from "../../components/output"
 import { Group, Page, Row, SectionFooter, SectionHeader, Empty } from "../../components/section-parts"
 import { useFrame } from "../../settings/frame"
 import { ago } from "../overview"
-import { EndProcess, Side } from "./parts"
+import type { EndpointState } from "@client/core/application"
+import { EndProcess, Side, heldServices } from "./parts"
 
 type Details = NonNullable<Awaited<ReturnType<ReturnType<typeof useApplication>["process"]>>>
 
 /** One live Process: where it came from, its two sides, and what it prints. */
 export default function ProcessView({ identity }: Readonly<{ identity: string }>) {
     const application = useApplication()
-    const read = useRead(() => application.process(identity), [identity], change => application.followProcesses(change))
+    const read = useRead(() => application.process(identity), [identity], change => application.followProcess(identity, change))
     const [problem, setProblem] = useState<string | null>(null)
     const details = read.value ?? null
     const label = details ? details.process.name ?? details.process.identity : identity
@@ -35,7 +36,7 @@ export default function ProcessView({ identity }: Readonly<{ identity: string }>
 function ProcessPage({ details }: Readonly<{ details: Details }>) {
     const { go } = useFrame()
     const space = useScale(useAppearance().spacing)
-    const { process, program, parent, options, opened, installed, server, client } = details
+    const { process, program, parent, options, opened, installed, server, client, sandbox, window } = details
     const given = Object.entries(options)
 
     return <Page>
@@ -68,11 +69,31 @@ function ProcessPage({ details }: Readonly<{ details: Details }>) {
             </Row>}
         </Group>
 
-        <Group title="Endpoints">
-            {server && <Row label="Server" description="Runs on this machine."><Side state={server} /></Row>}
-            {client && <Row label="Client" description="Its Window on the Desktop."><Side state={client} /></Row>}
-        </Group>
+        {server && <Group title="Server">
+            <Row label="State" description="Runs on this machine."><Side state={server} /></Row>
+            <Row label="Service" description="The name other Programs reach it by."><Held state={server} /></Row>
+        </Group>}
+        {client && <Group title="Client">
+            <Row label="State" description="Its Window on the Desktop."><Side state={client} /></Row>
+            <Row label="Service" description="The name other Programs reach it by."><Held state={client} /></Row>
+            <Row label="Sandbox" description={sandbox ? "Runs apart from the Desktop, in a browser sandbox." : "Runs without a browser sandbox."}>
+                <Text tone="secondary" size="small">{sandbox ? "Yes" : "No"}</Text>
+            </Row>
+            {window && <Row label="Window" description="Where it is on the Desktop, and how it shows.">
+                <Text tone="secondary" size="small">{[`${capitalize(window.layer)} layer`, window.minimized && "Minimized", window.maximized && "Maximized"].filter(Boolean).join(" · ")}</Text>
+            </Row>}
+        </Group>}
 
         <Output program={program} process={process.identity} description="What it prints, as it prints it." />
     </Page>
+}
+
+/** The Service name one side holds now, or None. */
+function Held({ state }: Readonly<{ state: EndpointState }>) {
+    const name = heldServices(state)
+    return name ? <Text tone="secondary" size="small" className="mono">{name}</Text> : <Text tone="secondary" size="small">None</Text>
+}
+
+function capitalize(word: string) {
+    return word.charAt(0).toUpperCase() + word.slice(1)
 }

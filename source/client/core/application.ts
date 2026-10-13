@@ -1,7 +1,7 @@
 import { desktop, system } from "@phreshos/client"
 import type {
     AppearanceUpdate, AuthenticationCredentials, Cleanup, Connection, DesktopPreferencesUpdate, Endpoint, IconSize, Launch, PermissionName,
-    PermissionRequestInput, Permissions, Process, Program, ProgramLogRecord, Session, SystemLogRecord
+    PermissionRequestInput, Permissions, Process, Program, ProgramLogRecord, Session, SystemLogRecord, WindowLayer
 } from "@phreshos/core"
 
 /** An installed Program with what Settings shows and changes about it. */
@@ -36,6 +36,9 @@ export type ProcessDetails = Readonly<{
     server: EndpointState
     client: EndpointState
 }>
+
+/** A running Client's Window as one Process page shows it. */
+export type WindowDetails = Readonly<{ layer: WindowLayer, minimized: boolean, maximized: boolean }>
 
 /** A Service held now: its name, the side of the Process holding it, that Process, and its Program. */
 export type ServiceDetails = Readonly<{
@@ -242,8 +245,38 @@ export default class Application {
         if (!process) return null
         const [details, parent, installedAt] = await Promise.all([this.processDetails(process), process.parent(), process.program().installedAt()])
         const installed = installedAt !== null
+        // Only a running Client has a Window to read.
+        const window = details.client?.running ? await this.windowDetails(process) : null
         // Installed: its Program has a page under Programs; otherwise it runs from a project.
-        return { ...details, parent, options: process.options, opened: process.opened, installed }
+        return { ...details, parent, options: process.options, opened: process.opened, installed, sandbox: details.program.client?.sandbox ?? null, window }
+    }
+
+    private async windowDetails(process: Process): Promise<WindowDetails | null> {
+        const window = process.client.window
+        try {
+            const [layer, minimized, maximized] = await Promise.all([window.layer(), window.minimized(), window.maximized()])
+            return { layer, minimized, maximized }
+        }
+        // The Client stopped between the two reads.
+        catch { return null }
+    }
+
+    /** Calls `change` as `followProcesses` does, and also when this Process's Window is minimized or maximized. */
+    public followProcess(identity: string, change: () => void) {
+        const stopProcesses = this.followProcesses(change)
+        let stopWindow: Cleanup | null = null
+        let following = true
+        void system.process.find(identity).then(process => {
+            if (!following || !process) return
+            const window = process.client.window
+            const stops = [window.subscribe("minimize", () => change()), window.subscribe("maximize", () => change())]
+            stopWindow = () => stops.forEach(stop => stop())
+        }, () => undefined)
+        return () => {
+            following = false
+            stopProcesses()
+            stopWindow?.()
+        }
     }
 
     private async processDetails(process: Process): Promise<ProcessDetails> {

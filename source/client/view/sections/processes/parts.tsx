@@ -4,13 +4,18 @@ import type { EndpointState } from "@client/core/application"
 import usePromise from "@libs/react-promise"
 import { useApplication } from "../../application"
 
-/** One side of a Process: offered as a Service, running, or stopped; a dash when its Program has no such side. */
+/** One side of a Process: running or stopped; a dash when its Program has no such side. */
 export function Side({ state }: Readonly<{ state: EndpointState }>) {
     if (state === null) return <Text tone="secondary">—</Text>
-    if (!state.running) return <Badge size="xsmall">Stopped</Badge>
-    return state.service
-        ? <Badge size="xsmall" color="secondary" dot>Service</Badge>
-        : <Badge size="xsmall" color="success" dot>Running</Badge>
+    return state.running
+        ? <Badge size="xsmall" color="success" dot>Running</Badge>
+        : <Badge size="xsmall">Stopped</Badge>
+}
+
+/** The Service names a Process's running sides hold now, or `null` when they hold none. */
+export function heldServices(...sides: readonly EndpointState[]) {
+    const names = sides.flatMap(side => side?.running && side.service ? [side.service] : [])
+    return names.length ? names.join(" · ") : null
 }
 
 /** Ends a Process after the owner confirms, from its row or from its own page. */
