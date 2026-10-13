@@ -14,7 +14,7 @@ import { useControls } from "../../components/controls"
 import { permissionPresentation } from "./presentation"
 import Output from "../../components/output"
 
-/** One installed Program: what it may do, what it does with the System, and its removal. */
+/** One Program the System knows, installed or attached: what it may do, what it does with the System, and its removal. */
 export default function ProgramView({ identity, programs }: Readonly<{ identity: string, programs: Read<ProgramDetails[]> }>) {
     const details = programs.value?.find(entry => entry.program.identity === identity)
     const [problem, setProblem] = useState<string | null>(null)
@@ -26,7 +26,7 @@ export default function ProgramView({ identity, programs }: Readonly<{ identity:
         <AppLayout.Content>
             <ReadView read={programs}>{() => details
                 ? <ProgramPage details={details} onChange={changed} onProblem={report} />
-                : <Empty>This Program is not installed.</Empty>}</ReadView>
+                : <Empty>The System does not know this Program.</Empty>}</ReadView>
         </AppLayout.Content>
         <SectionFooter status={problem ?? (details ? `${details.program.identity} · ${details.program.version}` : "")} problem={problem !== null} />
     </>
@@ -49,7 +49,9 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
                 </Flex>
                 {program.description && <Text tone="secondary" size="small">{program.description}</Text>}
             </Flex>
-            <Uninstall details={details} onUninstalled={() => go("programs")} onProblem={onProblem} />
+            {installedAt
+                ? <Uninstall details={details} onUninstalled={() => go("programs")} onProblem={onProblem} />
+                : <Forget details={details} onForgotten={() => go("programs")} onProblem={onProblem} />}
         </Flex>
 
         <Permissions details={details} busy={busy} run={run} />
@@ -58,12 +60,15 @@ function ProgramPage({ details, onChange, onProblem }: Readonly<{ details: Progr
             {installedAt && <Row label="Installed">
                 <Text tone="secondary" size="small" className="tabular">{installedAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</Text>
             </Row>}
+            {/* An attached Program cannot start with the System: its project is not there when the System starts. */}
             <Row label="Startup" description={startup
                 ? `Starts ${startup.name ? `“${startup.name}”` : "its default launch"} each time the System starts.`
-                : "Nothing starts with the System. The button starts its default launch."}>
+                : installedAt
+                    ? "Nothing starts with the System. The button starts its default launch."
+                    : "A Program starts with the System only once it is installed."}>
                 {startup
                     ? <Button size="small" color="danger" disabled={busy("startup")} onPress={() => run("startup", () => application.removeStartup(program))}>Remove</Button>
-                    : <Button size="small" disabled={busy("startup")} onPress={() => run("startup", () => application.setStartup(program))}>Start with the System</Button>}
+                    : <Button size="small" disabled={!installedAt || busy("startup")} onPress={() => run("startup", () => application.setStartup(program))}>Start with the System</Button>}
             </Row>
             <Row label="Pinned to the Taskbar">
                 <Switch aria-label="Pinned to the Taskbar" checked={pinnedAt !== null} disabled={busy("pin")} onChange={on => run("pin", () => application.pin(program, on))} />
@@ -184,6 +189,34 @@ function formatSize(bytes: number) {
     let value = bytes / 1000, unit = 0
     while (value >= 1000 && unit < units.length - 1) { value /= 1000; unit++ }
     return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`
+}
+
+/**
+ * Has the System forget a Program attached from its project, after the owner confirms: its Processes
+ * end, and its project, such as one run with `phresh dev`, stops with them. Its files stay.
+ */
+function Forget({ details, onForgotten, onProblem }: Readonly<{ details: ProgramDetails, onForgotten: () => void, onProblem: (error: unknown) => void }>) {
+    const application = useApplication()
+    const forgetting = usePromise(async () => {
+        try { await application.forget(details.program); onForgotten() }
+        catch (error) { onProblem(error); throw error }
+    })
+
+    return <AlertDialog>
+        <AlertDialog.Trigger size="small" color="danger" pending={forgetting.isPending}>Forget</AlertDialog.Trigger>
+        <AlertDialog.Backdrop>
+            <AlertDialog.Content>
+                <AlertDialog.Header>
+                    <AlertDialog.Title>Forget {details.program.name}?</AlertDialog.Title>
+                    <AlertDialog.Description>Its Processes end and the System no longer knows it. Its project's files stay.</AlertDialog.Description>
+                </AlertDialog.Header>
+                <AlertDialog.Footer>
+                    <AlertDialog.Close>Cancel</AlertDialog.Close>
+                    <AlertDialog.Close color="danger" onPress={() => void forgetting.safeExecute()}>Forget</AlertDialog.Close>
+                </AlertDialog.Footer>
+            </AlertDialog.Content>
+        </AlertDialog.Backdrop>
+    </AlertDialog>
 }
 
 /** Removes the Program after the owner confirms; its own data can go with it. */

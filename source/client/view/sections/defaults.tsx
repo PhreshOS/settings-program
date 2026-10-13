@@ -25,15 +25,15 @@ function name(type: string) {
 }
 
 /**
- * The Program each type of file or link opens with. Listed are the types and families installed
- * Programs declare, and every one that already has a default. A type without a default uses its
+ * The Program each type of file or link opens with. Listed are the types and families the Programs
+ * the System knows declare, installed or attached, and every one that already has a default. A type without a default uses its
  * family's, and without that asks each time.
  */
 export default function Defaults() {
     const application = useApplication()
     const space = useScale(useAppearance().spacing)
     const read = useRead(async () => {
-        const [programs, defaults] = await Promise.all([application.installed(), application.openingDefaults()])
+        const [programs, defaults] = await Promise.all([application.known(), application.openingDefaults()])
         return { programs, defaults }
     }, [], change => {
         const stops = [application.followPrograms(change), application.followOpeningDefaults(change)]
@@ -62,7 +62,7 @@ export default function Defaults() {
         <SectionHeader title="Defaults" />
         <AppLayout.Content>
             <ReadView read={read}>{() => types.length === 0
-                ? <Empty>No installed Program opens a type of its own yet.</Empty>
+                ? <Empty>No Program opens a type of its own yet.</Empty>
                 : <Page>
                     <Group title="Opens by default" description="Each kind of file or link opens with the Program chosen here.">
                         {types.map(type => <Row key={type} label={name(type)} description={type}>

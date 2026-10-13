@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useScale, useAppLayout, ScrollArea } from "@phreshos/react-ui"
+import { AppLayout, Badge, SearchField, Table, Text, useAppearance, useColor, useScale, useAppLayout, ScrollArea } from "@phreshos/react-ui"
 import type { ProgramDetails } from "@client/core/application"
 import { useApplication } from "../../application"
 import Icon from "../../components/icon"
@@ -23,6 +23,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
     const { go } = useFrame()
     const { narrow } = useAppLayout()
     const space = useScale(useAppearance().spacing)
+    const attachedColor = useAttachedColor()
     const terms = query.trim().toLowerCase()
     const all = programs.value ?? []
     const shown = all.filter(({ program }) => !terms
@@ -35,7 +36,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
         </SectionHeader>
         <AppLayout.Content>
             <ReadView read={programs}>{() => shown.length === 0
-                ? <Empty>{terms ? "No matching Programs" : "No installed Programs"}</Empty>
+                ? <Empty>{terms ? "No matching Programs" : "No Programs"}</Empty>
                 : <ScrollArea axis="horizontal"><Table aria-label="Programs" size="small" onAction={identity => go(`programs/${identity}`)}>
                     <Table.Header>
                         <Table.Column id="name" rowHeader minWidth={space.xlarge * 4}>Name</Table.Column>
@@ -46,7 +47,7 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
                         <Table.Column id="startup" width={space.xlarge * 4}>Startup</Table.Column>
                     </Table.Header>
                     <Table.Body>
-                        {shown.map(({ program, permissions, startup }) => <Table.Row key={program.identity} id={program.identity} textValue={program.name}>
+                        {shown.map(({ program, permissions, startup, installedAt }) => <Table.Row key={program.identity} id={program.identity} textValue={program.name} restColor={installedAt === null ? attachedColor : undefined}>
                             <Table.Cell>
                                 <span style={{ display: "flex", alignItems: "center", gap: space.small, minWidth: 0 }} title={program.description ?? undefined}>
                                     <Icon of={program} size={space.medium * 1.5} />
@@ -66,6 +67,21 @@ function ProgramList({ programs }: Readonly<{ programs: Read<ProgramDetails[]> }
             ? [shown.length === all.length ? count(all.length, "Program") : `${shown.length} of ${count(all.length, "Program")}`, starting ? `${starting} start with the System` : null].filter(Boolean).join(" · ")
             : ""} />
     </>
+}
+
+/**
+ * The tint of a Program attached from its project, not installed, as the Start menu shows it: a row's
+ * own color with a little of the warning color in it, so it stands apart while staying close to the others.
+ */
+function useAttachedColor() {
+    return mix(useColor("default").base, useColor("warning").subtle, 0.35)
+}
+
+/** Two hex colors mixed: `share` of the second in the first. */
+function mix(first: string, second: string, share: number) {
+    const channels = (hex: string) => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16))
+    const [a, b] = [channels(first), channels(second)]
+    return `#${a.map((value, index) => Math.round(value + (b[index]! - value) * share).toString(16).padStart(2, "0")).join("")}`
 }
 
 /** The permissions a Program holds, by name. */
